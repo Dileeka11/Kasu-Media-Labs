@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../AuthContext';
 import type { Inquiry, Project, Settings } from '../types';
-import { KLogo, initials } from './ui';
+import { KLogoImg, initials } from './ui';
 import { ProjectModal } from './ProjectModal';
 import { applyFont } from '../font';
 
@@ -39,6 +39,7 @@ export default function Layout() {
   const [unread, setUnread] = useState(0);
   const [modalProject, setModalProject] = useState<Project | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   const refreshBadge = useCallback(() => {
     void api.get<Inquiry[]>('/inquiries').then((res) => setUnread(res.data.filter((q) => q.unread).length));
@@ -47,9 +48,12 @@ export default function Layout() {
   useEffect(refreshBadge, [refreshBadge]);
   useEffect(() => setSearch(''), [pathname]);
 
-  // Apply the studio's saved font across the panel on load.
+  // Apply the studio's saved font across the panel on load, and pick up the logo.
   useEffect(() => {
-    void api.get<Settings>('/settings').then((res) => applyFont(res.data.font));
+    void api.get<Settings>('/settings').then((res) => {
+      applyFont(res.data.font);
+      setLogoUrl(res.data.logo_url);
+    });
   }, []);
 
   const openEditProject = useCallback((p: Project) => {
@@ -81,11 +85,7 @@ export default function Layout() {
           title="Back to live site"
           style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '0 0 26px 22px', textDecoration: 'none', color: 'inherit' }}
         >
-          <KLogo gradient size={26} />
-          <div style={{ lineHeight: 1 }}>
-            <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 17 }}>kml</div>
-            <div style={{ fontSize: 8, letterSpacing: 3, color: 'var(--ink-2)', textTransform: 'uppercase' }}>Admin</div>
-          </div>
+          <KLogoImg gradient size={42} src={logoUrl} />
         </a>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, paddingLeft: 8 }}>
           {nav.map((n) => (

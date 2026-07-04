@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import type { ProjectStatus, Role } from '../types';
 
 export function KLogo({ size = 26, gradient = false }: { size?: number; gradient?: boolean }) {
@@ -10,6 +10,27 @@ export function KLogo({ size = 26, gradient = false }: { size?: number; gradient
         height: Math.round(size * 1.27),
         background: gradient ? 'var(--grad-steep)' : '#fff',
       }}
+    />
+  );
+}
+
+// Renders the brand mark. Prefers the logo uploaded in the admin panel (`src`),
+// then /logo-mark.png, then falls back to the vector KLogo shape — so the UI
+// never breaks regardless of which assets exist.
+export function KLogoImg({ size = 26, gradient = false, src }: { size?: number; gradient?: boolean; src?: string | null }) {
+  // Track the exact URL that failed (not just a boolean) so that when `src`
+  // later changes — e.g. the uploaded logo arrives after the initial render —
+  // we re-attempt it instead of staying stuck on the vector fallback.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const candidate = src || '/logo-mark.png';
+  if (candidate === failedSrc) return <KLogo size={size} gradient={gradient} />;
+  return (
+    <img
+      key={candidate}
+      src={candidate}
+      alt="KML Production"
+      onError={() => setFailedSrc(candidate)}
+      style={{ height: Math.round(size * 1.27), width: 'auto', display: 'block', objectFit: 'contain' }}
     />
   );
 }

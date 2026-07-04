@@ -28,4 +28,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/settings', [SettingController::class, 'show']);
     Route::put('/settings', [SettingController::class, 'update']);
+    Route::post('/settings/media', [SettingController::class, 'media']);
+    Route::post('/settings/media/clear', [SettingController::class, 'clearMedia']);
 });

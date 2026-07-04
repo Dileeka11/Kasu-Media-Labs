@@ -22,6 +22,18 @@ class PublicController extends Controller
             'studio_name' => $settings->studio_name,
             'contact_email' => $settings->contact_email,
             'font' => $settings->font,
+            'logo_url' => $settings->logo_url,
+            'hero_video_url' => $settings->hero_video_url,
+            'showreel_url' => $settings->showreel_url,
+            'hero_kicker' => $settings->hero_kicker,
+            'hero_headline' => $settings->hero_headline,
+            'hero_subheadline' => $settings->hero_subheadline,
+            'phone' => $settings->phone,
+            'address' => $settings->address,
+            'socials' => $settings->socials,
+            'stats' => $settings->stats,
+            'clients' => $settings->clients,
+            'testimonials' => $settings->testimonials,
             'projects' => Project::with('category')
                 ->whereIn('status', $statuses)
                 ->orderByDesc('published_at')

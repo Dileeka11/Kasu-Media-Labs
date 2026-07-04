@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import type { Category, Project } from '../types';
-import { KLogo } from '../components/ui';
+import type { Category, Project, Socials, Stat, ClientItem, Testimonial } from '../types';
+import { KLogoImg } from '../components/ui';
 import { applyFont } from '../font';
 
 const API = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api') as string;
@@ -11,6 +11,18 @@ interface SiteData {
   studio_name: string;
   contact_email: string;
   font: string;
+  logo_url: string | null;
+  hero_video_url: string | null;
+  showreel_url: string | null;
+  hero_kicker: string | null;
+  hero_headline: string | null;
+  hero_subheadline: string | null;
+  phone: string | null;
+  address: string | null;
+  socials: Socials | null;
+  stats: Stat[] | null;
+  clients: ClientItem[] | null;
+  testimonials: Testimonial[] | null;
   projects: Project[];
   categories: Category[];
 }
@@ -40,14 +52,20 @@ const processSteps = [
   { n: '05', tc: '00:52', t: 'Deliver', d: 'Final optimized videos ready for every platform.' },
 ];
 
-const testimonials = [
+// Fallbacks used only until the studio fills these in from the admin panel.
+const defaultTestimonials = [
   { q: 'The team transformed our idea into an incredible commercial. The production quality was outstanding.', a: 'Sarah Lin', r: 'Brand Manager, Aether' },
   { q: 'Their storytelling and cinematic quality elevated our brand far beyond what we imagined.', a: 'Marcus Reed', r: 'CMO, Vertex' },
   { q: 'From concept to delivery, flawless execution. We book them for every campaign now.', a: 'Dana Okoye', r: 'Head of Marketing, Lumen' },
 ];
+const defaultStats = [
+  { value: '250+', label: 'Projects delivered' },
+  { value: '7 yrs', label: 'In production' },
+  { value: '40+', label: 'Brands served' },
+];
 
 const equipment = ['Cinema Cameras', 'Professional Lighting', 'Aerial Drones', 'Gimbal Stabilizers', 'Sound Equipment', 'Full Studio Setup'];
-const clients = ['NOVA', 'Atlas Group', 'Vertex', 'LUMEN', 'Skyline', 'Orbit Media', 'Frameworks', 'Meridian'];
+const defaultClients = ['NOVA', 'Atlas Group', 'Vertex', 'LUMEN', 'Skyline', 'Orbit Media', 'Frameworks', 'Meridian'];
 const tickerItems = ['Commercials', 'Corporate Films', 'Product Videos', 'Drone Cinematography', 'Documentaries', 'Motion Graphics'];
 const navLinks = [
   ['Work', '#work'],
@@ -70,6 +88,12 @@ function embedUrl(url: string | null): string | null {
   const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
   if (yt) return `https://www.youtube.com/embed/${yt[1]}?autoplay=1`;
   return null;
+}
+
+// A direct video file we can play in a <video> tag (uploads, or plain .mp4 links).
+function isDirectVideo(url: string | null): boolean {
+  if (!url) return false;
+  return /\.(mp4|webm|ogg|mov)(\?|#|$)/i.test(url) || url.includes('/storage/');
 }
 
 function Placeholder({ label, style }: { label: string; style?: CSSProperties }) {
@@ -130,8 +154,42 @@ export default function Site() {
   const featured = films.length ? [...films].sort((a, b) => b.views - a.views)[0] : null;
   const gridFilms = films.filter((p) => p.id !== featured?.id).slice(0, 6);
 
+  // Admin-managed content, falling back to defaults until the studio fills it in.
+  const heroKicker = data?.hero_kicker || 'Full-Service Video Production House';
+  const heroHeadline = data?.hero_headline || 'We Create Videos That Move People';
+  const heroSub = data?.hero_subheadline || 'From concept to final delivery — cinematic stories for brands, businesses, and creators.';
+  const heroWords = heroHeadline.trim().split(/\s+/);
+  const heroHead = heroWords.slice(0, -2).join(' ');
+  const heroTail = heroWords.slice(-2).join(' ');
+  const clientList = data?.clients?.length ? data.clients.map((c) => c.name).filter(Boolean) : defaultClients;
+  const statList = data?.stats?.length ? data.stats : defaultStats;
+  const quoteList = data?.testimonials?.length ? data.testimonials.map((t) => ({ q: t.quote, a: t.author, r: t.role })) : defaultTestimonials;
+  const lead = quoteList[0];
+  const hasHeroVideo = !!data?.hero_video_url;
+  const phone = data?.phone || '+1 (555) 019-2847';
+  const address = data?.address || 'Bay 12, Riverside Media Park';
+  const socials: [string, keyof Socials][] = [
+    ['IG', 'instagram'],
+    ['YT', 'youtube'],
+    ['VM', 'vimeo'],
+    ['IN', 'linkedin'],
+  ];
+
   const openVideo = (p: Project) =>
     setActiveVideo({ title: p.title, client: p.client, duration: p.duration, thumbnail_url: p.thumbnail_url, video_url: p.video_url });
+
+  // "Watch Showreel": prefer the admin showreel link, then the most-viewed
+  // project, then the hero background video — so the button always plays something.
+  const showreelSrc = data?.showreel_url || featured?.video_url || data?.hero_video_url || null;
+  const openShowreel = () => {
+    if (data?.showreel_url) {
+      setActiveVideo({ title: 'Showreel', client: data.studio_name ?? null, duration: null, thumbnail_url: featured?.thumbnail_url ?? null, video_url: data.showreel_url });
+    } else if (featured) {
+      openVideo(featured);
+    } else if (data?.hero_video_url) {
+      setActiveVideo({ title: 'Showreel', client: data.studio_name ?? null, duration: null, thumbnail_url: null, video_url: data.hero_video_url });
+    }
+  };
 
   const scrollToContact = () => contactRef.current?.scrollIntoView({ behavior: 'smooth' });
 
@@ -157,12 +215,8 @@ export default function Site() {
     <div className={`site-root${theme === 'dark' ? ' dark' : ''}`}>
       {/* TOP BAR */}
       <nav className={`site-nav${scrolled ? ' scrolled' : ''}`}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-          <KLogo gradient size={26} />
-          <div style={{ lineHeight: 1, color: 'var(--navfg)' }}>
-            <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 18, letterSpacing: 0.4 }}>kml</div>
-            <div style={{ fontSize: 8, letterSpacing: 3, opacity: 0.65, textTransform: 'uppercase', marginTop: 1 }}>Production</div>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <KLogoImg gradient size={46} src={data?.logo_url} />
         </div>
         <div style={{ display: 'flex', gap: 30, ...mono, fontSize: 12.5, letterSpacing: 1, textTransform: 'uppercase' }}>
           {navLinks.map(([label, href]) => (
@@ -196,26 +250,73 @@ export default function Site() {
             <div key={i} style={{ position: 'absolute', inset: 0, animation: `kmlfade 21s infinite ${i * 7}s, kmlkb 21s infinite ${i * 7}s`, ...bg }} />
           ))}
         </div>
-        <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(105deg,rgba(8,6,14,.92) 0%,rgba(8,6,14,.62) 42%,rgba(8,6,14,.28) 100%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(0deg,rgba(8,6,14,.95),rgba(8,6,14,0) 45%)', pointerEvents: 'none' }} />
+        {/* Autoplay showreel background — uses the video uploaded in the admin
+            panel, then /hero.mp4, else the gradient above simply shows through. */}
+        <video
+          key={data?.hero_video_url ?? 'static'}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster={featured?.thumbnail_url ?? undefined}
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+          style={{ position: 'absolute', inset: 0, zIndex: 1, width: '100%', height: '100%', objectFit: 'cover', filter: 'contrast(1.08) saturate(1.12)' }}
+        >
+          {data?.hero_video_url ? (
+            <source src={data.hero_video_url} />
+          ) : (
+            <>
+              <source src="/hero.mp4" type="video/mp4" />
+              <source src="/hero.webm" type="video/webm" />
+            </>
+          )}
+        </video>
+        {/* Legibility scrim. Over a real video: darken only the left text column
+            and let the footage stay clear on the right. Over the gradient
+            fallback: keep the original even wash. */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 2,
+            background: hasHeroVideo
+              ? 'linear-gradient(90deg,rgba(8,6,14,.90) 0%,rgba(8,6,14,.74) 32%,rgba(8,6,14,.34) 56%,rgba(8,6,14,0) 74%)'
+              : 'linear-gradient(105deg,rgba(8,6,14,.92) 0%,rgba(8,6,14,.62) 42%,rgba(8,6,14,.28) 100%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 2,
+            background: hasHeroVideo
+              ? 'linear-gradient(0deg,rgba(8,6,14,.82),rgba(8,6,14,0) 32%)'
+              : 'linear-gradient(0deg,rgba(8,6,14,.95),rgba(8,6,14,0) 45%)',
+            pointerEvents: 'none',
+          }}
+        />
 
         <div style={{ position: 'relative', zIndex: 3, width: '100%', maxWidth: 1360, margin: '0 auto', padding: '76px 40px 0', color: '#F7F6FB' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 15px', border: '1px solid rgba(255,255,255,.24)', borderRadius: 100, ...mono, fontSize: 11.5, letterSpacing: 2, textTransform: 'uppercase', color: '#EDEBF6', marginBottom: 30 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#E86FA6', boxShadow: '0 0 12px #E86FA6', animation: 'kmlbob 2.4s ease-in-out infinite' }} />
-            Full-Service Video Production House
+            {heroKicker}
           </div>
-          <h1 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: -3, lineHeight: 0.9, margin: 0, fontSize: 'clamp(56px,8.4vw,116px)', maxWidth: '14ch' }}>
-            We Create Videos That{' '}
-            <span style={{ background: 'linear-gradient(100deg,#F49AC1,#B48BEB 45%,#7C89FF)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Move People</span>
+          <h1 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: -3, lineHeight: 0.9, margin: 0, fontSize: 'clamp(56px,8.4vw,116px)', maxWidth: '14ch', textShadow: hasHeroVideo ? '0 2px 30px rgba(6,5,12,.6)' : undefined }}>
+            {heroHead && <>{heroHead} </>}
+            <span style={{ background: 'linear-gradient(100deg,#F49AC1,#B48BEB 45%,#7C89FF)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', filter: hasHeroVideo ? 'drop-shadow(0 2px 18px rgba(6,5,12,.55))' : undefined }}>{heroTail}</span>
           </h1>
-          <p style={{ fontSize: 19, lineHeight: 1.6, color: '#CFCDE0', maxWidth: 520, margin: '30px 0 0' }}>
-            From concept to final delivery — cinematic stories for brands, businesses, and creators.
+          <p style={{ fontSize: 19, lineHeight: 1.6, color: '#CFCDE0', maxWidth: 520, margin: '30px 0 0', textShadow: hasHeroVideo ? '0 1px 16px rgba(6,5,12,.7)' : undefined }}>
+            {heroSub}
           </p>
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center', marginTop: 40 }}>
             <button
-              onClick={() => featured && openVideo(featured)}
+              onClick={showreelSrc ? openShowreel : scrollToContact}
               className="clip-btn-lg"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '16px 26px 16px 18px', background: grad, border: 'none', color: '#fff', ...mono, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '16px 26px 16px 18px', background: grad, border: 'none', color: '#fff', ...mono, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer' }}
             >
               <span style={{ display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,.22)' }}>
                 <span style={{ borderLeft: '9px solid #fff', borderTop: '6px solid transparent', borderBottom: '6px solid transparent', marginLeft: 2 }} />
@@ -254,14 +355,22 @@ export default function Site() {
       </div>
 
       {/* CLIENTS */}
-      <section style={{ maxWidth: 1360, margin: '0 auto', padding: '56px 40px', display: 'flex', alignItems: 'center', gap: 36, flexWrap: 'wrap' }}>
-        <span style={{ ...mono, fontSize: 11.5, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--sfaint)', flex: 'none' }}>Trusted by</span>
-        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'center' }}>
-          {clients.map((c) => (
-            <span key={c} style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 17, color: 'var(--smuted)', letterSpacing: 0.5 }}>
-              {c}
-            </span>
-          ))}
+      <section style={{ maxWidth: 1360, margin: '0 auto', padding: '56px 40px 60px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 30 }}>
+          <div className="site-kicker" style={{ marginBottom: 12 }}>( Trusted by brands &amp; creators )</div>
+          <h2 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 30, letterSpacing: -1, margin: 0 }}>Trusted by brands &amp; creators</h2>
+        </div>
+        <div className="logo-slider">
+          <div className="logo-slider-track">
+            {[...clientList, ...clientList].map((c, i) => (
+              <span
+                key={i}
+                style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 22, color: 'var(--smuted)', letterSpacing: 0.5, whiteSpace: 'nowrap', padding: '0 34px', opacity: 0.75 }}
+              >
+                {c}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -293,14 +402,10 @@ export default function Site() {
               ))}
             </div>
             <div style={{ display: 'flex', gap: 56, marginTop: 44 }}>
-              {[
-                ['250+', 'Projects delivered'],
-                ['7 yrs', 'In production'],
-                ['40+', 'Brands served'],
-              ].map(([v, l]) => (
-                <div key={l}>
-                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 46, lineHeight: 1, letterSpacing: -1 }}>{v}</div>
-                  <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--sfaint)', marginTop: 8 }}>{l}</div>
+              {statList.map((st) => (
+                <div key={st.label}>
+                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 46, lineHeight: 1, letterSpacing: -1 }}>{st.value}</div>
+                  <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--sfaint)', marginTop: 8 }}>{st.label}</div>
                 </div>
               ))}
             </div>
@@ -480,16 +585,15 @@ export default function Site() {
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '110px 40px', textAlign: 'center' }}>
           <div className="site-kicker" style={{ marginBottom: 34 }}>( 06 — What clients say )</div>
           <p style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 40, lineHeight: 1.25, letterSpacing: -1, margin: '0 0 36px' }}>
-            “The team transformed our idea into an incredible commercial. The production quality was{' '}
-            <span style={{ background: 'linear-gradient(100deg,#E86FA6,#8354C9 45%,#2B39B8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>outstanding</span>.”
+            “{lead.q}”
           </p>
-          <div style={{ ...mono, fontSize: 12.5, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--smuted)' }}>Sarah Lin — Brand Manager, Aether</div>
+          <div style={{ ...mono, fontSize: 12.5, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--smuted)' }}>{lead.a}{lead.r ? ` — ${lead.r}` : ''}</div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 40, marginTop: 60, paddingTop: 44, borderTop: '1px solid var(--sline-12)' }}>
-            {testimonials.map((t) => (
-              <div key={t.a} style={{ maxWidth: 280, textAlign: 'left' }}>
+            {quoteList.map((t, i) => (
+              <div key={i} style={{ maxWidth: 280, textAlign: 'left' }}>
                 <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--smuted)', margin: '0 0 12px' }}>“{t.q}”</p>
                 <div style={{ ...mono, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--sfaint)' }}>
-                  {t.a} — {t.r}
+                  {t.a}{t.r ? ` — ${t.r}` : ''}
                 </div>
               </div>
             ))}
@@ -548,9 +652,9 @@ export default function Site() {
             <h2 className="site-h2" style={{ fontSize: 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 40px' }}>Start the conversation</h2>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {[
-                ['Phone', '+1 (555) 019-2847'],
+                ['Phone', phone],
                 ['Email', data?.contact_email ?? 'hello@kmlproduction.com'],
-                ['Studio', 'Bay 12, Riverside Media Park'],
+                ['Studio', address],
               ].map(([k, v]) => (
                 <div key={k} style={{ padding: '18px 0', borderTop: '1px solid var(--sline-14)', display: 'flex', justifyContent: 'space-between', gap: 20 }}>
                   <span style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--sfaint)' }}>{k}</span>
@@ -558,11 +662,17 @@ export default function Site() {
                 </div>
               ))}
               <div style={{ display: 'flex', gap: 10, padding: '22px 0', borderTop: '1px solid var(--sline-14)' }}>
-                {['IG', 'YT', 'VM', 'IN'].map((so) => (
-                  <div key={so} style={{ width: 42, height: 42, display: 'grid', placeItems: 'center', border: '1px solid var(--sline-25)', ...mono, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-                    {so}
-                  </div>
-                ))}
+                {socials.map(([so, key]) => {
+                  const href = data?.socials?.[key];
+                  const base: CSSProperties = { width: 42, height: 42, display: 'grid', placeItems: 'center', border: '1px solid var(--sline-25)', ...mono, fontSize: 11, fontWeight: 700, color: 'var(--sink)', textDecoration: 'none' };
+                  return href ? (
+                    <a key={so} href={href} target="_blank" rel="noreferrer" style={{ ...base, cursor: 'pointer' }}>
+                      {so}
+                    </a>
+                  ) : (
+                    <div key={so} style={{ ...base, opacity: 0.4 }}>{so}</div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -610,12 +720,8 @@ export default function Site() {
       {/* FOOTER */}
       <footer style={{ borderTop: '1px solid var(--sline-2)', background: 'var(--ssurface)' }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: '44px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 22 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-            <KLogo gradient size={24} />
-            <div style={{ lineHeight: 1 }}>
-              <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 16 }}>kml</div>
-              <div style={{ fontSize: 8, letterSpacing: 3, color: 'var(--smuted)', textTransform: 'uppercase' }}>Production</div>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <KLogoImg gradient size={38} src={data?.logo_url} />
           </div>
           <div style={{ display: 'flex', gap: 26, ...mono, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase' }}>
             {[
@@ -642,8 +748,8 @@ export default function Site() {
       {/* VIDEO LIGHTBOX */}
       {activeVideo && (
         <div onClick={() => setActiveVideo(null)} style={{ position: 'fixed', inset: 0, zIndex: 9600, background: 'rgba(6,5,12,.9)', backdropFilter: 'blur(10px)', display: 'grid', placeItems: 'center', padding: 40 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 'min(1100px,100%)' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 14, color: '#F7F6FB' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: 'min(1100px,100%)', maxHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 14, color: '#F7F6FB', flex: '0 0 auto' }}>
               <div>
                 <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: '#C9A8FF', marginBottom: 8 }}>● Now playing</div>
                 <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 30, letterSpacing: -1, textTransform: 'uppercase', lineHeight: 1 }}>{activeVideo.title}</div>
@@ -655,9 +761,11 @@ export default function Site() {
                 ✕
               </button>
             </div>
-            <div style={{ position: 'relative', aspectRatio: '16/9', background: '#000', border: '1px solid rgba(255,255,255,.14)', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', maxHeight: 'calc(100vh - 170px)', minHeight: 0, background: '#000', border: '1px solid rgba(255,255,255,.14)', overflow: 'hidden' }}>
               {embed ? (
                 <iframe src={embed} title={activeVideo.title} allow="autoplay; fullscreen" allowFullScreen style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }} />
+              ) : isDirectVideo(activeVideo.video_url) ? (
+                <video src={activeVideo.video_url ?? undefined} controls autoPlay playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }} />
               ) : (
                 <>
                   {activeVideo.thumbnail_url ? (

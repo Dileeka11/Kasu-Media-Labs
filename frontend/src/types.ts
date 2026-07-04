@@ -53,6 +53,28 @@ export interface Activity {
   created_at: string;
 }
 
+export interface Socials {
+  instagram?: string;
+  youtube?: string;
+  vimeo?: string;
+  linkedin?: string;
+}
+
+export interface Stat {
+  value: string;
+  label: string;
+}
+
+export interface ClientItem {
+  name: string;
+}
+
+export interface Testimonial {
+  quote: string;
+  author: string;
+  role: string;
+}
+
 export interface Settings {
   studio_name: string;
   contact_email: string;
@@ -60,6 +82,18 @@ export interface Settings {
   email_on_inquiries: boolean;
   auto_publish: boolean;
   show_drafts: boolean;
+  logo_url: string | null;
+  hero_video_url: string | null;
+  showreel_url: string | null;
+  hero_kicker: string | null;
+  hero_headline: string | null;
+  hero_subheadline: string | null;
+  phone: string | null;
+  address: string | null;
+  socials: Socials | null;
+  stats: Stat[] | null;
+  clients: ClientItem[] | null;
+  testimonials: Testimonial[] | null;
 }
 
 export interface DashboardData {
