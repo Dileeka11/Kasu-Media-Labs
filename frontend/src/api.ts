@@ -14,9 +14,13 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && window.location.pathname !== '/login') {
+    if (
+      err.response?.status === 401 &&
+      window.location.pathname.startsWith('/admin') &&
+      window.location.pathname !== '/admin/login'
+    ) {
       localStorage.removeItem('kml_token');
-      window.location.href = '/login';
+      window.location.href = '/admin/login';
     }
     return Promise.reject(err);
   }

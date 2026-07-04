@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Client;
-use App\Models\Invoice;
-use App\Models\Lead;
+use App\Models\Activity;
+use App\Models\DailyView;
+use App\Models\Inquiry;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 
@@ -12,27 +12,29 @@ class DashboardController extends Controller
 {
     public function index(): JsonResponse
     {
-        $monthly = collect(range(5, 0))->map(function (int $back) {
-            $month = now()->subMonths($back);
+        $last30 = DailyView::where('date', '>=', now()->subDays(30)->toDateString())
+            ->orderBy('date')
+            ->get();
+        $prev30 = (float) DailyView::whereBetween('date', [
+            now()->subDays(60)->toDateString(),
+            now()->subDays(31)->toDateString(),
+        ])->sum('views');
 
-            return [
-                'month' => $month->format('M'),
-                'revenue' => (float) Invoice::where('status', 'paid')
-                    ->whereYear('issue_date', $month->year)
-                    ->whereMonth('issue_date', $month->month)
-                    ->sum('total'),
-            ];
-        });
+        $cur30 = (float) $last30->sum('views');
+        $delta = $prev30 > 0 ? round((($cur30 - $prev30) / $prev30) * 100, 1) : 0.0;
 
         return response()->json([
-            'revenue' => (float) Invoice::where('status', 'paid')->sum('total'),
-            'outstanding' => (float) Invoice::whereIn('status', ['sent', 'overdue'])->sum('total'),
-            'active_projects' => Project::whereIn('status', ['in_progress', 'review'])->count(),
-            'total_clients' => Client::count(),
-            'new_leads' => Lead::where('status', 'new')->count(),
-            'monthly_revenue' => $monthly,
-            'recent_projects' => Project::with('client')->latest()->take(5)->get(),
-            'recent_leads' => Lead::latest()->take(5)->get(),
+            'total_projects' => Project::count(),
+            'projects_this_month' => Project::whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month)->count(),
+            'total_views' => (int) Project::sum('views'),
+            'views_delta' => $delta,
+            'new_inquiries' => Inquiry::whereDate('created_at', '>=', now()->subDays(30))->count(),
+            'unread_inquiries' => Inquiry::where('unread', true)->count(),
+            'published' => Project::where('status', 'published')->count(),
+            'drafts' => Project::where('status', 'draft')->count(),
+            'chart_bars' => $last30->take(-14)->pluck('views')->values(),
+            'activity' => Activity::latest()->take(4)->get(),
         ]);
     }
 }

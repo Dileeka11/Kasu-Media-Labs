@@ -1,90 +1,75 @@
+export type Role = 'owner' | 'editor' | 'producer' | 'viewer';
+
 export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'admin' | 'manager' | 'staff';
+  role: Role;
+  last_active_at: string | null;
   created_at?: string;
 }
 
-export interface Client {
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  projects_count?: number;
+}
+
+export type ProjectStatus = 'published' | 'draft' | 'review';
+
+export interface Project {
+  id: number;
+  category_id: number;
+  category?: Category;
+  title: string;
+  client: string | null;
+  video_url: string | null;
+  duration: string | null;
+  thumbnail: string | null;
+  thumbnail_url: string | null;
+  status: ProjectStatus;
+  views: number;
+  published_at: string | null;
+  created_at?: string;
+}
+
+export interface Inquiry {
   id: number;
   name: string;
   company: string | null;
   email: string;
-  phone: string | null;
-  status: 'active' | 'inactive';
-  notes: string | null;
-  projects_count?: number;
-  created_at?: string;
-}
-
-export type ProjectStatus = 'planning' | 'in_progress' | 'review' | 'completed' | 'on_hold';
-
-export interface Project {
-  id: number;
-  client_id: number;
-  client?: Client;
-  name: string;
-  type: string;
-  status: ProjectStatus;
-  budget: number;
-  deadline: string | null;
-  description: string | null;
-  created_at?: string;
-}
-
-export interface Service {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  unit: string;
-  active: boolean;
-}
-
-export interface InvoiceItem {
-  id?: number;
-  description: string;
-  quantity: number;
-  unit_price: number;
-}
-
-export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
-
-export interface Invoice {
-  id: number;
-  client_id: number;
-  client?: Client;
-  invoice_number: string;
-  issue_date: string;
-  due_date: string;
-  status: InvoiceStatus;
-  total: number;
-  items?: InvoiceItem[];
-  created_at?: string;
-}
-
-export type LeadStatus = 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
-
-export interface Lead {
-  id: number;
-  name: string;
-  email: string;
-  phone: string | null;
-  source: string;
-  service_interest: string | null;
-  status: LeadStatus;
+  type: string | null;
+  budget: string | null;
   message: string | null;
-  created_at?: string;
+  unread: boolean;
+  created_at: string;
 }
 
-export interface DashboardStats {
-  revenue: number;
-  outstanding: number;
-  active_projects: number;
-  total_clients: number;
-  new_leads: number;
-  monthly_revenue: { month: string; revenue: number }[];
-  recent_projects: Project[];
-  recent_leads: Lead[];
+export interface Activity {
+  id: number;
+  title: string;
+  meta: string | null;
+  created_at: string;
+}
+
+export interface Settings {
+  studio_name: string;
+  contact_email: string;
+  email_on_inquiries: boolean;
+  auto_publish: boolean;
+  show_drafts: boolean;
+}
+
+export interface DashboardData {
+  total_projects: number;
+  projects_this_month: number;
+  total_views: number;
+  views_delta: number;
+  new_inquiries: number;
+  unread_inquiries: number;
+  published: number;
+  drafts: number;
+  chart_bars: number[];
+  activity: Activity[];
 }

@@ -7,18 +7,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Project extends Model
 {
-    protected $fillable = ['client_id', 'name', 'type', 'status', 'budget', 'deadline', 'description'];
+    protected $fillable = ['category_id', 'title', 'client', 'video_url', 'duration', 'thumbnail', 'status', 'views', 'published_at'];
+
+    protected $appends = ['thumbnail_url'];
 
     protected function casts(): array
     {
         return [
-            'budget' => 'float',
-            'deadline' => 'date:Y-m-d',
+            'views' => 'integer',
+            'published_at' => 'date:Y-m-d',
         ];
     }
 
-    public function client(): BelongsTo
+    public function category(): BelongsTo
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(Category::class);
+    }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        return $this->thumbnail ? asset('storage/'.$this->thumbnail) : null;
     }
 }

@@ -1,26 +1,34 @@
-# KML Admin — Kasu Media Labs Admin Panel
+# KML Production — Company Website + Admin CMS
 
-Full-stack admin panel: **React + TypeScript (Vite)** frontend and **Laravel 12 + MySQL** backend.
+Full-stack implementation of the Claude Design handoff (**KML Production v2.dc.html** + **KML Admin.dc.html**).
+**React + TypeScript (Vite)** frontend · **Laravel 12 + Sanctum + MySQL** backend.
 
-## Modules
+## Routes
 
-- **Dashboard** — revenue, outstanding invoices, active projects, clients, new leads, 6-month revenue chart
-- **Clients** — client directory with status and project counts
-- **Projects** — projects per client with type, budget, deadline, status
-- **Services** — service catalogue with pricing
-- **Invoices** — invoices with line items, auto-numbering (`INV-YYYY-NNNN`), status tracking
-- **Leads** — inquiry pipeline (new → contacted → qualified → converted / lost)
-- **Team** — user management with roles (admin / manager / staff)
-- **Settings** — profile and password
+| URL | What |
+|---|---|
+| `/` | Public company website (hero showreel, ticker, about, services, work index, films, process, testimonials, gear, CTA, contact form, light/dark theme) |
+| `/admin` | Admin CMS (login required) |
+
+The website is CMS-driven: the Work index and Films sections list **published** projects from the database (drafts appear too if the "Show drafts on public site" setting is on), category filter chips come from Categories, the contact form creates entries in the admin's **Inquiries** (with unread badge + activity log), and the studio contact email comes from Settings.
+
+## Admin modules (matches the design 1:1)
+
+- **Login** — split-panel gradient sign-in (demo credential box included)
+- **Dashboard** — Total Projects / Total Views / New Inquiries / Published stat cards, 14-bar "Views — last 30 days" chart, recent activity feed
+- **Projects** — table with thumbnail, category, status (Published / Draft / Review), views, date; create/edit via the New Project modal (drag & drop cover upload), delete
+- **Categories** — card grid with slug + project counts, add/edit/delete
+- **Inquiries** — lead list with unread dots, type/budget, relative time, Reply (marks read + opens mail); unread badge in sidebar
+- **Users & Roles** — Owner / Editor / Producer / Viewer with colored role pills, last-active tracking, invite/manage/remove
+- **Settings** — studio profile + preference toggles (persisted)
 
 ## Requirements
 
-- PHP 8.2+ with the `zip` extension enabled (XAMPP works)
-- Composer, Node.js 18+, MySQL/MariaDB on port 3306
+- PHP 8.2+ with `zip` extension (XAMPP works), Composer, Node 18+, MySQL/MariaDB on 3306
 
 ## Running locally
 
-1. **Start MySQL** (XAMPP Control Panel → MySQL → Start). Database `kml_admin` must exist:
+1. **Start MySQL** (XAMPP Control Panel → MySQL → Start). Create the database once:
    ```sql
    CREATE DATABASE kml_admin CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
@@ -29,7 +37,8 @@ Full-stack admin panel: **React + TypeScript (Vite)** frontend and **Laravel 12 
    ```
    cd backend
    composer install
-   php artisan migrate --seed
+   php artisan migrate:fresh --seed
+   php artisan storage:link
    php artisan serve
    ```
 
@@ -40,23 +49,28 @@ Full-stack admin panel: **React + TypeScript (Vite)** frontend and **Laravel 12 
    npm run dev
    ```
 
-4. Open http://localhost:5173
+4. Open http://localhost:5173 (website) — admin at http://localhost:5173/admin
 
-## Default login
+## Demo login (as in the design)
 
 | Email | Password |
 |---|---|
-| `admin@kasumedialabs.com` | `kml@admin123` |
+| `admin@kml` | `kml` |
 
-> Change this password after first login (Settings → Change Password).
+`admin@kml` is an alias for Karim Malik (Owner, `karim@kmlproduction.com`). All seeded team members use password `kml`.
 
-## API
-
-Token auth via Laravel Sanctum (`Authorization: Bearer <token>`). Base URL `http://localhost:8000/api` — override with `VITE_API_URL` in `frontend/.env`.
+## API (Sanctum bearer token, base `http://localhost:8000/api`)
 
 | Endpoint | Notes |
 |---|---|
-| `POST /login`, `POST /logout`, `GET /me` | Auth |
-| `GET /dashboard` | Stats + chart data |
-| `clients`, `projects`, `services`, `invoices`, `leads`, `users` | REST resources (index/store/update/destroy) |
-| `PUT /profile`, `PUT /profile/password` | Own profile |
+| `GET /public/site` | Public: published projects, categories, studio info (no auth) |
+| `POST /public/inquiries` | Public: contact form → creates an inquiry (no auth) |
+| `POST /login`, `POST /logout`, `GET /me` | Auth (login accepts the `admin@kml` alias) |
+| `GET /dashboard` | Stats, chart bars, recent activity |
+| `projects` | CRUD; multipart with `thumbnail` image; auto `published_at`; activity logged |
+| `categories` | CRUD; slug auto-generated; delete blocked while projects exist |
+| `inquiries` | index / mark read (`PUT {unread}`) / delete |
+| `users` | CRUD; roles owner/editor/producer/viewer; self-delete blocked |
+| `GET/PUT /settings` | Studio profile + preferences singleton |
+
+Thumbnails are stored on the `public` disk (`storage/app/public/thumbnails`) and served via `/storage` (requires `php artisan storage:link`).

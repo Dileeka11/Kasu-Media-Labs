@@ -1,93 +1,98 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { api, errorMessage } from '../api';
-import { useAuth } from '../AuthContext';
+import type { Settings as SettingsData } from '../types';
+import { Toggle, ErrorBox } from '../components/ui';
+
+const prefMeta: { key: keyof Pick<SettingsData, 'email_on_inquiries' | 'auto_publish' | 'show_drafts'>; t: string; d: string }[] = [
+  { key: 'email_on_inquiries', t: 'Email me on new inquiries', d: 'Get notified the moment a lead comes in' },
+  { key: 'auto_publish', t: 'Auto-publish scheduled projects', d: 'Release projects at their scheduled time' },
+  { key: 'show_drafts', t: 'Show drafts on public site', d: 'Preview unpublished work publicly' },
+];
 
 export default function Settings() {
-  const { user } = useAuth();
-  const [profile, setProfile] = useState({ name: user?.name ?? '', email: user?.email ?? '' });
-  const [pw, setPw] = useState({ current_password: '', password: '', password_confirmation: '' });
-  const [profileMsg, setProfileMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [settings, setSettings] = useState<SettingsData | null>(null);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const saveProfile = async (e: FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    setProfileMsg(null);
+  useEffect(() => {
+    void api.get<SettingsData>('/settings').then((res) => setSettings(res.data));
+  }, []);
+
+  if (!settings) return <div style={{ padding: 40, color: 'var(--ink-3)' }}>Loading…</div>;
+
+  const persist = async (next: SettingsData) => {
+    setSettings(next);
+    setError('');
+    setSaved(false);
     try {
-      await api.put('/profile', profile);
-      setProfileMsg({ ok: true, text: 'Profile updated. Refresh to see changes everywhere.' });
+      await api.put('/settings', next);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
     } catch (err) {
-      setProfileMsg({ ok: false, text: errorMessage(err) });
-    } finally {
-      setBusy(false);
+      setError(errorMessage(err));
     }
   };
 
-  const savePassword = async (e: FormEvent) => {
-    e.preventDefault();
+  const saveProfile = async () => {
     setBusy(true);
-    setPwMsg(null);
-    try {
-      await api.put('/profile/password', pw);
-      setPwMsg({ ok: true, text: 'Password changed successfully.' });
-      setPw({ current_password: '', password: '', password_confirmation: '' });
-    } catch (err) {
-      setPwMsg({ ok: false, text: errorMessage(err) });
-    } finally {
-      setBusy(false);
-    }
+    await persist(settings);
+    setBusy(false);
   };
-
-  const msgStyle = (ok: boolean) => ({
-    background: ok ? 'var(--success-soft)' : 'var(--danger-soft)',
-    color: ok ? 'var(--success)' : 'var(--danger)',
-    borderRadius: 9,
-    padding: '10px 14px',
-    fontSize: 13,
-    marginBottom: 14,
-  });
 
   return (
-    <div className="settings-grid">
-      <div className="card panel">
-        <div className="panel-title">Profile</div>
-        {profileMsg && <div style={msgStyle(profileMsg.ok)}>{profileMsg.text}</div>}
-        <form onSubmit={(e) => void saveProfile(e)}>
-          <div className="field" style={{ marginBottom: 14 }}>
-            <label>Name</label>
-            <input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required />
+    <div style={{ maxWidth: 640, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {error && <ErrorBox>{error}</ErrorBox>}
+      <div className="k-card" style={{ padding: 26 }}>
+        <h3 className="k-h" style={{ fontWeight: 600, fontSize: 17, margin: '0 0 20px' }}>Studio profile</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label className="k-label">Studio name</label>
+            <input
+              className="k-input"
+              value={settings.studio_name}
+              onChange={(e) => setSettings({ ...settings, studio_name: e.target.value })}
+            />
           </div>
-          <div className="field" style={{ marginBottom: 18 }}>
-            <label>Email</label>
-            <input type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} required />
+          <div>
+            <label className="k-label">Contact email</label>
+            <input
+              className="k-input"
+              type="email"
+              value={settings.contact_email}
+              onChange={(e) => setSettings({ ...settings, contact_email: e.target.value })}
+            />
           </div>
-          <button className="btn btn-primary" disabled={busy}>
-            Save Profile
-          </button>
-        </form>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button className="k-btn-grad" onClick={() => void saveProfile()} disabled={busy}>
+              {busy ? 'Saving…' : 'Save changes'}
+            </button>
+            {saved && (
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: 'var(--green)', fontWeight: 700 }}>✓ Saved</span>
+            )}
+          </div>
+        </div>
       </div>
-
-      <div className="card panel">
-        <div className="panel-title">Change Password</div>
-        {pwMsg && <div style={msgStyle(pwMsg.ok)}>{pwMsg.text}</div>}
-        <form onSubmit={(e) => void savePassword(e)}>
-          <div className="field" style={{ marginBottom: 14 }}>
-            <label>Current Password</label>
-            <input type="password" value={pw.current_password} onChange={(e) => setPw({ ...pw, current_password: e.target.value })} required />
+      <div className="k-card" style={{ padding: 26 }}>
+        <h3 className="k-h" style={{ fontWeight: 600, fontSize: 17, margin: '0 0 6px' }}>Preferences</h3>
+        {prefMeta.map((p) => (
+          <div
+            key={p.key}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '15px 0',
+              borderBottom: '1px solid rgba(23,21,58,.07)',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 14.5, fontWeight: 700 }}>{p.t}</div>
+              <div style={{ fontSize: 13, color: 'var(--ink-3)' }}>{p.d}</div>
+            </div>
+            <Toggle on={settings[p.key]} onChange={(v) => void persist({ ...settings, [p.key]: v })} />
           </div>
-          <div className="field" style={{ marginBottom: 14 }}>
-            <label>New Password</label>
-            <input type="password" value={pw.password} onChange={(e) => setPw({ ...pw, password: e.target.value })} required minLength={8} />
-          </div>
-          <div className="field" style={{ marginBottom: 18 }}>
-            <label>Confirm New Password</label>
-            <input type="password" value={pw.password_confirmation} onChange={(e) => setPw({ ...pw, password_confirmation: e.target.value })} required minLength={8} />
-          </div>
-          <button className="btn btn-primary" disabled={busy}>
-            Change Password
-          </button>
-        </form>
+        ))}
       </div>
     </div>
   );

@@ -13,18 +13,25 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $data['email'])->first();
+        // "admin@kml" is the short demo alias from the design handoff
+        $email = strtolower(trim($data['email']));
+        if ($email === 'admin@kml') {
+            $email = 'karim@kmlproduction.com';
+        }
+
+        $user = User::where('email', $email)->first();
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => ['Invalid credentials. Check your email and password.'],
             ]);
         }
 
+        $user->forceFill(['last_active_at' => now()])->save();
         $token = $user->createToken('kml-admin')->plainTextToken;
 
         return response()->json(['token' => $token, 'user' => $user]);
@@ -39,6 +46,8 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
+        $request->user()->forceFill(['last_active_at' => now()])->save();
+
         return response()->json($request->user());
     }
 }

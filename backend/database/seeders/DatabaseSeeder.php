@@ -2,11 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\Client;
-use App\Models\Invoice;
-use App\Models\Lead;
+use App\Models\Activity;
+use App\Models\Category;
+use App\Models\DailyView;
+use App\Models\Inquiry;
 use App\Models\Project;
-use App\Models\Service;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -14,74 +15,98 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::create([
-            'name' => 'KML Admin',
-            'email' => 'admin@kasumedialabs.com',
-            'password' => 'kml@admin123',
-            'role' => 'admin',
-        ]);
-
-        $services = [
-            ['name' => 'Promotional Video', 'category' => 'Video', 'price' => 75000, 'unit' => 'per project'],
-            ['name' => 'Social Media Reel', 'category' => 'Video', 'price' => 15000, 'unit' => 'per item'],
-            ['name' => 'Logo & Brand Identity', 'category' => 'Design', 'price' => 45000, 'unit' => 'per project'],
-            ['name' => 'Social Media Post Design', 'category' => 'Design', 'price' => 3500, 'unit' => 'per item'],
-            ['name' => 'Business Website', 'category' => 'Web', 'price' => 120000, 'unit' => 'per project'],
-            ['name' => 'Social Media Management', 'category' => 'Marketing', 'price' => 35000, 'unit' => 'per month'],
-            ['name' => 'Product Photography', 'category' => 'Photography', 'price' => 25000, 'unit' => 'per day'],
+        // Team from the design (login demo: admin@kml / kml — alias for Karim)
+        $users = [
+            ['name' => 'Karim Malik', 'email' => 'karim@kmlproduction.com', 'role' => 'owner', 'last_active_at' => now()],
+            ['name' => 'Lena Ross', 'email' => 'lena@kmlproduction.com', 'role' => 'editor', 'last_active_at' => now()->subHours(2)],
+            ['name' => 'Devon Pratt', 'email' => 'devon@kmlproduction.com', 'role' => 'producer', 'last_active_at' => now()->subDay()],
+            ['name' => 'Maya Osei', 'email' => 'maya@kmlproduction.com', 'role' => 'viewer', 'last_active_at' => now()->subDays(4)],
         ];
-        foreach ($services as $service) {
-            Service::create($service + ['active' => true]);
+        foreach ($users as $user) {
+            User::create($user + ['password' => 'kml']);
         }
 
-        $clients = [
-            ['name' => 'Nimal Perera', 'company' => 'Perera Motors', 'email' => 'nimal@pereramotors.lk', 'phone' => '077 123 4567', 'status' => 'active'],
-            ['name' => 'Shanika Fernando', 'company' => 'Lanka Bites Restaurant', 'email' => 'shanika@lankabites.lk', 'phone' => '071 987 6543', 'status' => 'active'],
-            ['name' => 'Ruwan Jayasuriya', 'company' => 'RJ Constructions', 'email' => 'ruwan@rjcon.lk', 'phone' => '076 555 2211', 'status' => 'active'],
-            ['name' => 'Dilani Wickramasinghe', 'company' => 'Bloom Beauty Salon', 'email' => 'dilani@bloombeauty.lk', 'phone' => '070 444 8899', 'status' => 'inactive'],
-        ];
-        foreach ($clients as $client) {
-            Client::create($client);
+        $categories = ['Commercials', 'Corporate', 'Product Films', 'Social Media Ads', 'Documentaries'];
+        $catIds = [];
+        foreach ($categories as $name) {
+            $catIds[$name] = Category::create(['name' => $name, 'slug' => str($name)->slug()])->id;
         }
 
         $projects = [
-            ['client_id' => 1, 'name' => 'Showroom Launch Video', 'type' => 'video_production', 'status' => 'in_progress', 'budget' => 150000, 'deadline' => now()->addDays(20)->toDateString()],
-            ['client_id' => 2, 'name' => 'Menu Redesign & Photos', 'type' => 'graphic_design', 'status' => 'review', 'budget' => 60000, 'deadline' => now()->addDays(7)->toDateString()],
-            ['client_id' => 2, 'name' => 'Instagram Campaign — July', 'type' => 'social_media', 'status' => 'in_progress', 'budget' => 35000, 'deadline' => now()->addDays(27)->toDateString()],
-            ['client_id' => 3, 'name' => 'Corporate Website', 'type' => 'web_development', 'status' => 'planning', 'budget' => 180000, 'deadline' => now()->addDays(45)->toDateString()],
-            ['client_id' => 4, 'name' => 'Salon Rebranding', 'type' => 'branding', 'status' => 'completed', 'budget' => 55000, 'deadline' => now()->subDays(10)->toDateString()],
+            ['title' => 'Aether — Brand Film', 'cat' => 'Commercials', 'status' => 'published', 'views' => 82100, 'days_ago' => 4, 'client' => 'Aether Studios', 'duration' => '2:14'],
+            ['title' => 'Skyline Towers Reveal', 'cat' => 'Documentaries', 'status' => 'published', 'views' => 44700, 'days_ago' => 7, 'client' => 'Meridian Group', 'duration' => '3:40'],
+            ['title' => 'Pulse Wireless Ad', 'cat' => 'Social Media Ads', 'status' => 'draft', 'views' => 0, 'days_ago' => 12, 'client' => 'Pulse', 'duration' => '0:30'],
+            ['title' => 'Vertex Annual Film', 'cat' => 'Corporate', 'status' => 'published', 'views' => 19300, 'days_ago' => 17, 'client' => 'Vertex', 'duration' => '4:05'],
+            ['title' => 'Lumen Watch Launch', 'cat' => 'Product Films', 'status' => 'review', 'views' => 6000, 'days_ago' => 24, 'client' => 'Lumen', 'duration' => '1:12'],
+            ['title' => 'Orbit Founders Story', 'cat' => 'Corporate', 'status' => 'published', 'views' => 31800, 'days_ago' => 31, 'client' => 'Orbit Media', 'duration' => '5:22'],
         ];
-        foreach ($projects as $project) {
-            Project::create($project);
-        }
-
-        $invoiceRows = [
-            ['client_id' => 4, 'status' => 'paid', 'months_back' => 2, 'items' => [['description' => 'Salon Rebranding — logo & identity', 'quantity' => 1, 'unit_price' => 45000], ['description' => 'Signage design', 'quantity' => 1, 'unit_price' => 10000]]],
-            ['client_id' => 2, 'status' => 'paid', 'months_back' => 1, 'items' => [['description' => 'Social media management — June', 'quantity' => 1, 'unit_price' => 35000]]],
-            ['client_id' => 1, 'status' => 'sent', 'months_back' => 0, 'items' => [['description' => 'Showroom launch video — 50% advance', 'quantity' => 1, 'unit_price' => 75000]]],
-            ['client_id' => 3, 'status' => 'overdue', 'months_back' => 1, 'items' => [['description' => 'Website wireframes & planning', 'quantity' => 1, 'unit_price' => 30000]]],
-        ];
-        foreach ($invoiceRows as $row) {
-            $issue = now()->subMonths($row['months_back'])->subDays(5);
-            $total = collect($row['items'])->sum(fn ($item) => $item['quantity'] * $item['unit_price']);
-            $invoice = Invoice::create([
-                'client_id' => $row['client_id'],
-                'invoice_number' => Invoice::nextNumber(),
-                'issue_date' => $issue->toDateString(),
-                'due_date' => $issue->copy()->addDays(14)->toDateString(),
-                'status' => $row['status'],
-                'total' => $total,
+        foreach ($projects as $p) {
+            Project::create([
+                'title' => $p['title'],
+                'category_id' => $catIds[$p['cat']],
+                'client' => $p['client'],
+                'video_url' => 'https://vimeo.com/'.random_int(100000000, 999999999),
+                'duration' => $p['duration'],
+                'status' => $p['status'],
+                'views' => $p['views'],
+                'published_at' => $p['status'] === 'published' || $p['status'] === 'review'
+                    ? now()->subDays($p['days_ago'])->toDateString()
+                    : now()->subDays($p['days_ago'])->toDateString(),
+                'created_at' => now()->subDays($p['days_ago']),
             ]);
-            $invoice->items()->createMany($row['items']);
         }
 
-        $leads = [
-            ['name' => 'Kasun Silva', 'email' => 'kasun.silva@gmail.com', 'phone' => '075 111 2233', 'source' => 'website', 'service_interest' => 'Business Website', 'status' => 'new', 'message' => 'Need a website for my export business.'],
-            ['name' => 'Amaya Rathnayake', 'email' => 'amaya.r@yahoo.com', 'phone' => '072 333 4455', 'source' => 'social_media', 'service_interest' => 'Promotional Video', 'status' => 'contacted'],
-            ['name' => 'Tharindu Bandara', 'email' => 'tharindu@apexgym.lk', 'phone' => '078 666 7788', 'source' => 'referral', 'service_interest' => 'Social Media Management', 'status' => 'qualified', 'message' => 'Gym opening next month, needs full package.'],
+        $inquiries = [
+            ['name' => 'Elena Vasquez', 'company' => 'Aether Studios', 'email' => 'elena@aetherstudios.com', 'type' => 'Commercial', 'budget' => '$25k–50k', 'unread' => true, 'hours_ago' => 2, 'message' => 'Looking for a 60s hero film for our spring launch…'],
+            ['name' => 'Tom Bishop', 'company' => 'Meridian Group', 'email' => 'tom@meridiangroup.com', 'type' => 'Corporate', 'budget' => '$10k–25k', 'unread' => true, 'hours_ago' => 5, 'message' => 'Need an annual company film, ~4 minutes.'],
+            ['name' => 'Priya Nair', 'company' => 'Lumen', 'email' => 'priya@lumen.co', 'type' => 'Product Film', 'budget' => '$5k–10k', 'unread' => true, 'hours_ago' => 24, 'message' => 'Product launch video for our new watch line.'],
+            ['name' => 'Carlos Mendez', 'company' => 'Orbit Media', 'email' => 'carlos@orbitmedia.com', 'type' => 'Documentary', 'budget' => '$50k+', 'unread' => false, 'hours_ago' => 48, 'message' => 'Founder documentary, multi-day shoot.'],
+            ['name' => 'Anna Kim', 'company' => 'Pulse', 'email' => 'anna@pulse.io', 'type' => 'Social Ads', 'budget' => '$5k–10k', 'unread' => false, 'hours_ago' => 72, 'message' => 'Batch of 6 vertical social ads.'],
         ];
-        foreach ($leads as $lead) {
-            Lead::create($lead);
+        foreach ($inquiries as $q) {
+            Inquiry::create([
+                'name' => $q['name'],
+                'company' => $q['company'],
+                'email' => $q['email'],
+                'type' => $q['type'],
+                'budget' => $q['budget'],
+                'message' => $q['message'],
+                'unread' => $q['unread'],
+                'created_at' => now()->subHours($q['hours_ago']),
+                'updated_at' => now()->subHours($q['hours_ago']),
+            ]);
         }
+
+        $activities = [
+            ['title' => '“Lumen Watch Launch” published', 'meta' => 'by Lena', 'hours_ago' => 2],
+            ['title' => 'New inquiry from Aether Studios', 'meta' => null, 'hours_ago' => 2],
+            ['title' => '“Pulse Wireless Ad” moved to Draft', 'meta' => 'by Devon', 'hours_ago' => 26],
+            ['title' => 'Maya Osei invited as Viewer', 'meta' => null, 'hours_ago' => 50],
+        ];
+        foreach ($activities as $a) {
+            Activity::create([
+                'title' => $a['title'],
+                'meta' => $a['meta'],
+                'created_at' => now()->subHours($a['hours_ago']),
+                'updated_at' => now()->subHours($a['hours_ago']),
+            ]);
+        }
+
+        // Rising daily views for the dashboard chart (last 60 days)
+        foreach (range(60, 0) as $back) {
+            $trend = (60 - $back) * 220;
+            DailyView::create([
+                'date' => now()->subDays($back)->toDateString(),
+                'views' => 5200 + $trend + random_int(-900, 1400),
+            ]);
+        }
+
+        Setting::create([
+            'studio_name' => 'KML Production',
+            'contact_email' => 'hello@kmlproduction.com',
+            'email_on_inquiries' => true,
+            'auto_publish' => true,
+            'show_drafts' => false,
+        ]);
     }
 }

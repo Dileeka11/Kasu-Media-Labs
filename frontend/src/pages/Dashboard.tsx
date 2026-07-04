@@ -1,106 +1,99 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Banknote, FolderKanban, Users, Inbox, Clock } from 'lucide-react';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { api } from '../api';
-import type { DashboardStats } from '../types';
-import { StatusBadge, money, formatDate } from '../components/ui';
+import type { DashboardData } from '../types';
+import { fmtViews, relTimeShort } from '../components/ui';
 
 export default function Dashboard() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
+
+  const load = () => {
+    void api.get<DashboardData>('/dashboard').then((res) => setData(res.data));
+  };
 
   useEffect(() => {
-    void api.get<DashboardStats>('/dashboard').then((res) => setStats(res.data));
+    load();
+    window.addEventListener('kml:projects-changed', load);
+    return () => window.removeEventListener('kml:projects-changed', load);
   }, []);
 
-  if (!stats) return <div className="page-loading">Loading dashboard…</div>;
+  if (!data) return <div style={{ padding: 40, color: 'var(--ink-3)' }}>Loading…</div>;
 
-  const cards = [
-    { label: 'Revenue (paid)', value: money(stats.revenue), hint: 'All-time collected', icon: Banknote, bg: 'var(--success-soft)', color: 'var(--success)' },
-    { label: 'Outstanding', value: money(stats.outstanding), hint: 'Sent + overdue invoices', icon: Clock, bg: 'var(--warning-soft)', color: 'var(--warning)' },
-    { label: 'Active Projects', value: String(stats.active_projects), hint: 'In progress or review', icon: FolderKanban, bg: 'var(--primary-soft)', color: 'var(--primary)' },
-    { label: 'Clients', value: String(stats.total_clients), hint: 'Total registered', icon: Users, bg: 'var(--info-soft)', color: 'var(--info)' },
-    { label: 'New Leads', value: String(stats.new_leads), hint: 'Awaiting contact', icon: Inbox, bg: 'var(--danger-soft)', color: 'var(--danger)' },
+  const stats = [
+    { label: 'Total Projects', value: String(data.total_projects), delta: `+${data.projects_this_month} this month` },
+    { label: 'Total Views', value: fmtViews(data.total_views), delta: `${data.views_delta >= 0 ? '+' : ''}${data.views_delta}%` },
+    { label: 'New Inquiries', value: String(data.new_inquiries), delta: `${data.unread_inquiries} unread` },
+    { label: 'Published', value: String(data.published), delta: `${data.drafts} drafts` },
   ];
+
+  const max = Math.max(...data.chart_bars, 1);
 
   return (
     <>
-      <div className="stat-grid">
-        {cards.map((c) => {
-          const Icon = c.icon;
-          return (
-            <div className="card stat-card" key={c.label}>
-              <div>
-                <div className="stat-label">{c.label}</div>
-                <div className="stat-value">{c.value}</div>
-                <div className="stat-hint">{c.hint}</div>
-              </div>
-              <div className="stat-icon" style={{ background: c.bg, color: c.color }}>
-                <Icon size={20} />
-              </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 22 }}>
+        {stats.map((s) => (
+          <div key={s.label} className="k-card" style={{ padding: 22 }}>
+            <div className="k-mono" style={{ marginBottom: 14 }}>{s.label}</div>
+            <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 36, lineHeight: 1, letterSpacing: -1, marginBottom: 10 }}>
+              {s.value}
             </div>
-          );
-        })}
+            <div style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>{s.delta}</div>
+          </div>
+        ))}
       </div>
-
-      <div className="card panel" style={{ marginBottom: 18 }}>
-        <div className="panel-title">Revenue — last 6 months</div>
-        <div style={{ height: 260 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={stats.monthly_revenue} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
-              <defs>
-                <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#5b5bf0" stopOpacity={0.25} />
-                  <stop offset="100%" stopColor="#5b5bf0" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eceef5" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#9297ad' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: '#9297ad' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => (v >= 1000 ? `${v / 1000}k` : String(v))} />
-              <Tooltip formatter={(v) => money(Number(v))} />
-              <Area type="monotone" dataKey="revenue" stroke="#5b5bf0" strokeWidth={2.5} fill="url(#rev)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="dash-grid">
-        <div className="card panel">
-          <div className="panel-title">Recent Projects</div>
-          {stats.recent_projects.length === 0 && <div className="empty-state">No projects yet.</div>}
-          {stats.recent_projects.map((p) => (
-            <div className="list-row" key={p.id}>
-              <div>
-                <div className="cell-main">{p.name}</div>
-                <div className="cell-sub">
-                  {p.client?.name ?? '—'} · due {formatDate(p.deadline)}
-                </div>
-              </div>
-              <StatusBadge value={p.status} />
-            </div>
-          ))}
-          <div style={{ marginTop: 14 }}>
-            <Link to="/projects" style={{ color: 'var(--primary)', fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
-              View all projects →
-            </Link>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 16 }}>
+        <div className="k-card" style={{ padding: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+            <h3 className="k-h" style={{ fontWeight: 600, fontSize: 17 }}>Views — last 30 days</h3>
+            <span
+              style={{
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 12,
+                color: data.views_delta >= 0 ? 'var(--green)' : 'var(--red)',
+                fontWeight: 700,
+              }}
+            >
+              {data.views_delta >= 0 ? '▲' : '▼'} {Math.abs(data.views_delta)}%
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 7, height: 180, borderBottom: '1px solid var(--border)' }}>
+            {data.chart_bars.map((b, i) => (
+              <div
+                key={i}
+                title={fmtViews(b)}
+                style={{
+                  flex: 1,
+                  height: `${Math.round((b / max) * 96)}%`,
+                  background: 'linear-gradient(180deg,#8354C9,#2B39B8)',
+                  borderRadius: '4px 4px 0 0',
+                }}
+              />
+            ))}
           </div>
         </div>
-        <div className="card panel">
-          <div className="panel-title">Latest Leads</div>
-          {stats.recent_leads.length === 0 && <div className="empty-state">No leads yet.</div>}
-          {stats.recent_leads.map((l) => (
-            <div className="list-row" key={l.id}>
-              <div>
-                <div className="cell-main">{l.name}</div>
-                <div className="cell-sub">{l.service_interest ?? l.source}</div>
+        <div className="k-card" style={{ padding: 24 }}>
+          <h3 className="k-h" style={{ fontWeight: 600, fontSize: 17, margin: '0 0 20px' }}>Recent activity</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 17 }}>
+            {data.activity.map((a) => (
+              <div key={a.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <span
+                  style={{
+                    width: 9,
+                    height: 9,
+                    background: 'var(--grad-av)',
+                    clipPath: 'polygon(50% 0,100% 50%,50% 100%,0 50%)',
+                    marginTop: 5,
+                    flex: 'none',
+                  }}
+                />
+                <div style={{ lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 14, color: 'var(--ink)' }}>{a.title}</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>
+                    {relTimeShort(a.created_at)}
+                    {a.meta ? ` · ${a.meta}` : ''}
+                  </div>
+                </div>
               </div>
-              <StatusBadge value={l.status} />
-            </div>
-          ))}
-          <div style={{ marginTop: 14 }}>
-            <Link to="/leads" style={{ color: 'var(--primary)', fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
-              View all leads →
-            </Link>
+            ))}
           </div>
         </div>
       </div>

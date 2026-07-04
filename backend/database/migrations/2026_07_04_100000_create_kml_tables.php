@@ -9,85 +9,77 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('role')->default('staff')->after('password');
+            $table->string('role')->default('viewer')->after('password');
+            $table->timestamp('last_active_at')->nullable()->after('role');
         });
 
-        Schema::create('clients', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('company')->nullable();
-            $table->string('email');
-            $table->string('phone')->nullable();
-            $table->string('status')->default('active');
-            $table->text('notes')->nullable();
+            $table->string('slug')->unique();
             $table->timestamps();
         });
 
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained()->cascadeOnDelete();
-            $table->string('name');
-            $table->string('type')->default('other');
-            $table->string('status')->default('planning');
-            $table->decimal('budget', 12, 2)->default(0);
-            $table->date('deadline')->nullable();
-            $table->text('description')->nullable();
+            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
+            $table->string('title');
+            $table->string('client')->nullable();
+            $table->string('video_url')->nullable();
+            $table->string('thumbnail')->nullable();
+            $table->string('status')->default('draft'); // published | draft | review
+            $table->unsignedBigInteger('views')->default(0);
+            $table->date('published_at')->nullable();
             $table->timestamps();
         });
 
-        Schema::create('services', function (Blueprint $table) {
+        Schema::create('inquiries', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('category')->default('Other');
-            $table->decimal('price', 12, 2)->default(0);
-            $table->string('unit')->default('per project');
-            $table->boolean('active')->default(true);
-            $table->timestamps();
-        });
-
-        Schema::create('invoices', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('client_id')->constrained()->cascadeOnDelete();
-            $table->string('invoice_number')->unique();
-            $table->date('issue_date');
-            $table->date('due_date');
-            $table->string('status')->default('draft');
-            $table->decimal('total', 12, 2)->default(0);
-            $table->timestamps();
-        });
-
-        Schema::create('invoice_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('invoice_id')->constrained()->cascadeOnDelete();
-            $table->string('description');
-            $table->decimal('quantity', 10, 2)->default(1);
-            $table->decimal('unit_price', 12, 2)->default(0);
-            $table->timestamps();
-        });
-
-        Schema::create('leads', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+            $table->string('company')->nullable();
             $table->string('email');
-            $table->string('phone')->nullable();
-            $table->string('source')->default('website');
-            $table->string('service_interest')->nullable();
-            $table->string('status')->default('new');
+            $table->string('type')->nullable();
+            $table->string('budget')->nullable();
             $table->text('message')->nullable();
+            $table->boolean('unread')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::create('activities', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->string('meta')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('daily_views', function (Blueprint $table) {
+            $table->id();
+            $table->date('date')->unique();
+            $table->unsignedBigInteger('views')->default(0);
+            $table->timestamps();
+        });
+
+        Schema::create('settings', function (Blueprint $table) {
+            $table->id();
+            $table->string('studio_name')->default('KML Production');
+            $table->string('contact_email')->default('hello@kmlproduction.com');
+            $table->boolean('email_on_inquiries')->default(true);
+            $table->boolean('auto_publish')->default(true);
+            $table->boolean('show_drafts')->default(false);
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('leads');
-        Schema::dropIfExists('invoice_items');
-        Schema::dropIfExists('invoices');
-        Schema::dropIfExists('services');
+        Schema::dropIfExists('settings');
+        Schema::dropIfExists('daily_views');
+        Schema::dropIfExists('activities');
+        Schema::dropIfExists('inquiries');
         Schema::dropIfExists('projects');
-        Schema::dropIfExists('clients');
+        Schema::dropIfExists('categories');
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('role');
+            $table->dropColumn(['role', 'last_active_at']);
         });
     }
 };
