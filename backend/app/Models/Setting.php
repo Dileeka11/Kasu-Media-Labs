@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
-    protected $fillable = ['studio_name', 'contact_email', 'email_on_inquiries', 'auto_publish', 'show_drafts'];
+    protected $fillable = ['studio_name', 'contact_email', 'font', 'email_on_inquiries', 'auto_publish', 'show_drafts'];
 
     protected function casts(): array
     {

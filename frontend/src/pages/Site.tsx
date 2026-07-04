@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import type { Category, Project } from '../types';
 import { KLogo } from '../components/ui';
+import { applyFont } from '../font';
 
 const API = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api') as string;
 
 interface SiteData {
   studio_name: string;
   contact_email: string;
+  font: string;
   projects: Project[];
   categories: Category[];
 }
@@ -111,7 +113,10 @@ export default function Site() {
   }, []);
 
   useEffect(() => {
-    void axios.get<SiteData>(`${API}/public/site`).then((res) => setData(res.data));
+    void axios.get<SiteData>(`${API}/public/site`).then((res) => {
+      setData(res.data);
+      applyFont(res.data.font); // match the studio font chosen in admin Settings
+    });
   }, []);
 
   useEffect(() => {

@@ -56,6 +56,7 @@ export interface Activity {
 export interface Settings {
   studio_name: string;
   contact_email: string;
+  font: string;
   email_on_inquiries: boolean;
   auto_publish: boolean;
   show_drafts: boolean;

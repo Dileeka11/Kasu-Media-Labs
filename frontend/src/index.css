@@ -16,6 +16,8 @@
   --grad: linear-gradient(115deg, #E86FA6, #8354C9 50%, #2B39B8);
   --grad-steep: linear-gradient(150deg, #E86FA6, #8354C9 52%, #2B39B8);
   --grad-av: linear-gradient(135deg, #E86FA6, #2B39B8);
+  /* Admin UI font — overridden at runtime from the Settings page. */
+  --ui-font: 'Manrope', system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -26,14 +28,14 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: 'Manrope', system-ui, sans-serif;
+  font-family: var(--ui-font);
   -webkit-font-smoothing: antialiased;
   font-size: 14px;
 }
 
 ::selection { background: #8354C9; color: #fff; }
 
-input, select, textarea, button { font-family: 'Manrope', sans-serif; }
+input, select, textarea, button { font-family: var(--ui-font); }
 button { cursor: pointer; }
 
 .kadmin-scroll::-webkit-scrollbar { width: 9px; height: 9px; }
@@ -66,6 +68,9 @@ button { cursor: pointer; }
   min-height: 100vh;
   background: var(--sbg);
   color: var(--sink);
+  /* Follows the studio font chosen in admin Settings (Space Grotesk display
+     headings and Space Mono labels keep their own families as accents). */
+  font-family: var(--ui-font);
 }
 
 .site-root.dark {
@@ -150,7 +155,7 @@ button { cursor: pointer; }
   font-size: 15px;
   color: var(--sink);
   outline: none;
-  font-family: 'Manrope', sans-serif;
+  font-family: var(--ui-font);
   border-radius: 0;
 }
 
@@ -284,7 +289,7 @@ select.k-input { appearance: none; cursor: pointer; }
   text-align: left;
   width: 100%;
   border: none;
-  font-family: 'Manrope', sans-serif;
+  font-family: var(--ui-font);
   color: var(--ink-2);
   background: transparent;
   border-radius: 0 8px 8px 0;

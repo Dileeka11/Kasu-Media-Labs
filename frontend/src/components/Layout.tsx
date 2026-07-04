@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../AuthContext';
-import type { Inquiry, Project } from '../types';
+import type { Inquiry, Project, Settings } from '../types';
 import { KLogo, initials } from './ui';
 import { ProjectModal } from './ProjectModal';
+import { applyFont } from '../font';
 
 const nav = [
   { to: '/admin', label: 'Dashboard', g: '▦' },
@@ -45,6 +46,11 @@ export default function Layout() {
 
   useEffect(refreshBadge, [refreshBadge]);
   useEffect(() => setSearch(''), [pathname]);
+
+  // Apply the studio's saved font across the panel on load.
+  useEffect(() => {
+    void api.get<Settings>('/settings').then((res) => applyFont(res.data.font));
+  }, []);
 
   const openEditProject = useCallback((p: Project) => {
     setModalProject(p);

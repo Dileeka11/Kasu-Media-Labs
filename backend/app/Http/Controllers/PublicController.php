@@ -21,6 +21,7 @@ class PublicController extends Controller
         return response()->json([
             'studio_name' => $settings->studio_name,
             'contact_email' => $settings->contact_email,
+            'font' => $settings->font,
             'projects' => Project::with('category')
                 ->whereIn('status', $statuses)
                 ->orderByDesc('published_at')
