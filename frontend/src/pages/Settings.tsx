@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, errorMessage } from '../api';
 import type { Settings as SettingsData, Stat, ClientItem, Testimonial } from '../types';
-import { Toggle, ErrorBox } from '../components/ui';
+import { Toggle, ErrorBox, ProgressBar } from '../components/ui';
 import { FONT_OPTIONS, applyFont, fontStack } from '../font';
 
 const prefMeta: { key: keyof Pick<SettingsData, 'email_on_inquiries' | 'auto_publish' | 'show_drafts'>; t: string; d: string }[] = [
@@ -27,6 +27,10 @@ export default function Settings() {
   const [busy, setBusy] = useState(false);
   const logoInput = useRef<HTMLInputElement>(null);
   const videoInput = useRef<HTMLInputElement>(null);
+  // Live upload progress (0–100). `mediaPct` keys on the media field; `clientPct`
+  // keys on the client row index. A key is present only while that upload runs.
+  const [mediaPct, setMediaPct] = useState<Partial<Record<'logo' | 'hero_video', number>>>({});
+  const [clientPct, setClientPct] = useState<Record<number, number>>({});
 
   useEffect(() => {
     void api.get<SettingsData>('/settings').then((res) => {
@@ -67,12 +71,18 @@ export default function Settings() {
     const fd = new FormData();
     fd.append(field, file);
     setError('');
+    setMediaPct((p) => ({ ...p, [field]: 0 }));
     try {
-      const res = await api.post<SettingsData>('/settings/media', fd);
+      const res = await api.post<SettingsData>('/settings/media', fd, {
+        onUploadProgress: (e) =>
+          setMediaPct((p) => ({ ...p, [field]: e.total ? (e.loaded / e.total) * 100 : (p[field] ?? 0) })),
+      });
       setSettings(res.data);
       flashSaved();
     } catch (err) {
       setError(errorMessage(err));
+    } finally {
+      setMediaPct(({ [field]: _drop, ...rest }) => rest);
     }
   };
 
@@ -84,6 +94,28 @@ export default function Settings() {
       flashSaved();
     } catch (err) {
       setError(errorMessage(err));
+    }
+  };
+
+  // Upload a brand logo for one client row. Returns the stored URL, which we
+  // write onto that client item; the old file (if any) is cleaned up server-side.
+  const uploadClientLogo = async (index: number, file: File) => {
+    const list = s.clients ?? [];
+    const fd = new FormData();
+    fd.append('logo', file);
+    if (list[index]?.logo) fd.append('old', list[index].logo!);
+    setError('');
+    setClientPct((p) => ({ ...p, [index]: 0 }));
+    try {
+      const res = await api.post<{ url: string }>('/settings/client-logo', fd, {
+        onUploadProgress: (e) =>
+          setClientPct((p) => ({ ...p, [index]: e.total ? (e.loaded / e.total) * 100 : (p[index] ?? 0) })),
+      });
+      setLocal({ clients: list.map((x, j) => (j === index ? { ...x, logo: res.data.url } : x)) });
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setClientPct(({ [index]: _drop, ...rest }) => rest);
     }
   };
 
@@ -145,6 +177,7 @@ export default function Settings() {
           <button className="k-btn-outline" onClick={() => logoInput.current?.click()}>Upload logo</button>
           {s.logo_url && <button className="k-btn-outline" onClick={() => void clearMedia('logo')} style={{ color: 'var(--red)' }}>Remove</button>}
         </div>
+        <ProgressBar value={mediaPct.logo} label="Uploading logo" />
 
         {/* Hero video */}
         <label className="k-label">Hero background video (MP4 / WebM, max 50 MB)</label>
@@ -160,6 +193,7 @@ export default function Settings() {
           <button className="k-btn-outline" onClick={() => videoInput.current?.click()}>Upload video</button>
           {s.hero_video_url && <button className="k-btn-outline" onClick={() => void clearMedia('hero_video')} style={{ color: 'var(--red)' }}>Remove</button>}
         </div>
+        <ProgressBar value={mediaPct.hero_video} label="Uploading video" />
 
         {/* Showreel */}
         <label className="k-label" style={{ marginTop: 24 }}>Showreel video link (the “Watch Showreel” button)</label>
@@ -266,12 +300,43 @@ export default function Settings() {
       {/* CLIENTS */}
       <div className="k-card" style={cardStyle}>
         <h3 className="k-h" style={h3Style}>Clients</h3>
-        <div style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 18 }}>Brand names shown in the “Trusted by” slider.</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 18 }}>Upload a brand logo for each client — it shows in the “Trusted by” slider. If no logo is uploaded, the name is shown as text instead. PNG with a transparent background works best.</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
           {clients.map((c, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <input className="k-input" style={{ width: 160 }} placeholder="Client name" value={c.name} onChange={(e) => setLocal({ clients: clients.map((x, j) => (j === i ? { name: e.target.value } : x)) })} />
-              <button className="k-btn-outline" onClick={() => setLocal({ clients: clients.filter((_, j) => j !== i) })} style={{ color: 'var(--red)', padding: '0 10px' }}>✕</button>
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8, width: 200, border: '1px solid var(--border)', borderRadius: 8, padding: 12 }}>
+              <label
+                style={{
+                  height: 64,
+                  borderRadius: 6,
+                  border: '1px dashed var(--border-strong)',
+                  background: c.logo ? 'var(--bg)' : 'transparent',
+                  display: 'grid',
+                  placeItems: 'center',
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  position: 'relative',
+                }}
+                title={c.logo ? 'Replace logo' : 'Upload logo'}
+              >
+                {c.logo ? (
+                  <img src={c.logo} alt={c.name || 'logo'} style={{ maxWidth: '90%', maxHeight: 48, objectFit: 'contain' }} />
+                ) : (
+                  <span className="k-mono" style={{ fontSize: 10 }}>Upload logo</span>
+                )}
+                <input type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && void uploadClientLogo(i, e.target.files[0])} />
+              </label>
+              <ProgressBar value={clientPct[i]} />
+              <input className="k-input" placeholder="Client name" value={c.name} onChange={(e) => setLocal({ clients: clients.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)) })} />
+              <div style={{ display: 'flex', gap: 8 }}>
+                {c.logo && (
+                  <button className="k-btn-outline" onClick={() => setLocal({ clients: clients.map((x, j) => (j === i ? { ...x, logo: null } : x)) })} style={{ flex: 1, padding: '6px 8px', fontSize: 11 }}>
+                    Remove logo
+                  </button>
+                )}
+                <button className="k-btn-outline" onClick={() => setLocal({ clients: clients.filter((_, j) => j !== i) })} style={{ color: 'var(--red)', padding: '6px 10px', fontSize: 11 }}>
+                  ✕ Delete
+                </button>
+              </div>
             </div>
           ))}
         </div>

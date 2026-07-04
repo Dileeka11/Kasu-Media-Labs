@@ -97,6 +97,177 @@ button { cursor: pointer; }
 @keyframes kmlfade { 0% { opacity: 0; } 4% { opacity: 1; } 30% { opacity: 1; } 36% { opacity: 0; } 100% { opacity: 0; } }
 @keyframes kmlkb { 0% { transform: scale(1.06); } 36% { transform: scale(1.18); } 100% { transform: scale(1.18); } }
 @keyframes kmlbob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
+@keyframes kmlrise { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+@keyframes kmlscroll { 0% { transform: translateY(-6px); opacity: 0; } 40% { opacity: 1; } 100% { transform: translateY(20px); opacity: 0; } }
+
+/* ---------- Scroll reveal ---------- */
+/* Elements start hidden; the IntersectionObserver in Site.tsx adds `.in`
+   when they enter the viewport, triggering a soft rise-in. */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.8s cubic-bezier(0.16, 0.8, 0.24, 1),
+    transform 0.8s cubic-bezier(0.16, 0.8, 0.24, 1);
+  will-change: opacity, transform;
+}
+.reveal.in { opacity: 1; transform: none; }
+
+/* Children of a staggered container rise one after another. */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s cubic-bezier(0.16, 0.8, 0.24, 1),
+    transform 0.7s cubic-bezier(0.16, 0.8, 0.24, 1);
+  will-change: opacity, transform;
+}
+.reveal-stagger.in > * { opacity: 1; transform: none; }
+.reveal-stagger.in > *:nth-child(1) { transition-delay: 0.05s; }
+.reveal-stagger.in > *:nth-child(2) { transition-delay: 0.12s; }
+.reveal-stagger.in > *:nth-child(3) { transition-delay: 0.19s; }
+.reveal-stagger.in > *:nth-child(4) { transition-delay: 0.26s; }
+.reveal-stagger.in > *:nth-child(5) { transition-delay: 0.33s; }
+.reveal-stagger.in > *:nth-child(6) { transition-delay: 0.40s; }
+.reveal-stagger.in > *:nth-child(7) { transition-delay: 0.47s; }
+.reveal-stagger.in > *:nth-child(8) { transition-delay: 0.54s; }
+
+/* ---------- Hero entrance ---------- */
+.hero-in { opacity: 0; animation: kmlrise 0.9s cubic-bezier(0.16, 0.8, 0.24, 1) forwards; }
+.hero-in-1 { animation-delay: 0.15s; }
+.hero-in-2 { animation-delay: 0.30s; }
+.hero-in-3 { animation-delay: 0.45s; }
+.hero-in-4 { animation-delay: 0.60s; }
+
+/* ---------- Hover micro-interactions ---------- */
+.film-card { transition: transform 0.5s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.film-card .film-bg { transition: transform 0.7s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.film-card:hover { transform: translateY(-4px); }
+.film-card:hover .film-bg { transform: scale(1.06); }
+
+.clip-btn, .clip-btn-lg {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+.clip-btn:hover, .clip-btn-lg:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: 0 10px 30px rgba(131, 84, 201, 0.32);
+}
+.clip-btn:active, .clip-btn-lg:active { transform: translateY(0); }
+
+.site-nav a { position: relative; transition: color 0.2s; }
+.site-nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 1.5px;
+  width: 0;
+  background: linear-gradient(90deg, #E86FA6, #8354C9);
+  transition: width 0.28s cubic-bezier(0.16, 0.8, 0.24, 1);
+}
+.site-nav a:hover::after { width: 100%; }
+
+.work-row { transition: background 0.25s, transform 0.25s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.work-row:hover { transform: translateX(8px); }
+.work-row .work-thumb { transition: transform 0.5s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.work-row:hover .work-thumb { transform: scale(1.05); }
+
+/* Directional reveal variants — swap the start transform. */
+.reveal-l { transform: translateX(-48px); }
+.reveal-r { transform: translateX(48px); }
+.reveal-scale { transform: scale(0.92); }
+.reveal-blur { filter: blur(14px); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 0.8, 0.24, 1), filter 0.8s ease; }
+.reveal-l.in, .reveal-r.in, .reveal-scale.in { transform: none; }
+.reveal-blur.in { filter: none; }
+
+/* ---------- Animated gradient text ---------- */
+@keyframes kmlgradmove { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+.grad-text-anim {
+  background-size: 200% auto;
+  animation: kmlgradmove 5s linear infinite;
+}
+@keyframes kmlbgshift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.cta-grad { background-size: 220% 220%; animation: kmlbgshift 9s ease infinite; }
+
+/* ---------- Ambient floating blobs (dark sections) ---------- */
+@keyframes kmlblob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, -30px) scale(1.12); }
+  66% { transform: translate(-30px, 25px) scale(0.94); }
+}
+.kml-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  pointer-events: none;
+  will-change: transform;
+  animation: kmlblob 16s ease-in-out infinite;
+}
+
+/* ---------- Self-drawing process bar ---------- */
+.proc-bar-fill {
+  width: 0;
+  transition: width 1.4s cubic-bezier(0.16, 0.8, 0.24, 1) 0.2s;
+}
+.reveal.in .proc-bar-fill, .proc-bar-fill.in { width: 72%; }
+
+/* ---------- Button shine sweep ---------- */
+.clip-btn, .clip-btn-lg { position: relative; overflow: hidden; }
+.clip-btn::before, .clip-btn-lg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+.clip-btn:hover::before, .clip-btn-lg:hover::before { left: 140%; }
+
+/* ---------- Card tilt (JS sets --rx/--ry) ---------- */
+.tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--ty, 0));
+  transition: transform 0.25s cubic-bezier(0.16, 0.8, 0.24, 1);
+  transform-style: preserve-3d;
+}
+.tilt .film-bg { transition: transform 0.7s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.tilt:hover .film-bg { transform: scale(1.05); }
+
+/* ---------- Equipment / testimonial hover ---------- */
+.gear-pill { transition: transform 0.3s cubic-bezier(0.16, 0.8, 0.24, 1), border-color 0.3s, color 0.3s; }
+.gear-pill:hover { transform: translateY(-4px); border-color: #8354C9; color: #8354C9; }
+.quote-card { transition: transform 0.35s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.quote-card:hover { transform: translateY(-6px); }
+
+/* ---------- Filter tab underline glide ---------- */
+.cat-tab { position: relative; transition: color 0.25s; }
+.cat-tab::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 0;
+  background: #8354C9;
+  transition: width 0.3s cubic-bezier(0.16, 0.8, 0.24, 1);
+}
+.cat-tab:hover::after { width: 100%; }
+
+/* Respect users who prefer no motion — reveal everything instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-stagger > *, .hero-in,
+  .reveal-l, .reveal-r, .reveal-scale, .reveal-blur {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+  .kml-blob, .grad-text-anim, .logo-slider-track, .proc-bar-fill { animation: none !important; }
+  .proc-bar-fill { width: 72%; }
+}
 
 .logo-slider {
   overflow: hidden;
@@ -110,6 +281,12 @@ button { cursor: pointer; }
   animation: kmlticker 32s linear infinite;
 }
 .logo-slider:hover .logo-slider-track { animation-play-state: paused; }
+.client-logo {
+  filter: grayscale(1);
+  opacity: 0.6;
+  transition: filter 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+}
+.client-logo:hover { filter: grayscale(0); opacity: 1; transform: scale(1.06); }
 
 .site-nav {
   display: grid;

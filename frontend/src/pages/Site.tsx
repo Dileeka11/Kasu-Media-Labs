@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import type { Category, Project, Socials, Stat, ClientItem, Testimonial } from '../types';
@@ -118,6 +118,47 @@ function Placeholder({ label, style }: { label: string; style?: CSSProperties })
   );
 }
 
+// Counts up from 0 to the number inside `value` when it scrolls into view,
+// preserving any prefix/suffix (e.g. "250+", "7 yrs").
+function Counter({ value }: { value: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [display, setDisplay] = useState('');
+  useEffect(() => {
+    const el = ref.current;
+    const m = value.match(/^([^\d]*)([\d,]+)(.*)$/);
+    if (!el || !m || typeof IntersectionObserver === 'undefined') {
+      setDisplay(value);
+      return;
+    }
+    const [, prefix, digits, suffix] = m;
+    const target = parseInt(digits.replace(/,/g, ''), 10);
+    setDisplay(prefix + '0' + suffix);
+    let raf = 0;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0].isIntersecting) return;
+        io.disconnect();
+        const dur = 1500;
+        const start = performance.now();
+        const tick = (now: number) => {
+          const p = Math.min(1, (now - start) / dur);
+          const eased = 1 - Math.pow(1 - p, 3);
+          setDisplay(prefix + Math.round(target * eased).toLocaleString() + suffix);
+          if (p < 1) raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+      },
+      { threshold: 0.6 },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [value]);
+  return <span ref={ref}>{display || value}</span>;
+}
+
 export default function Site() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('kml_theme') === 'dark' ? 'dark' : 'light'));
   const [scrolled, setScrolled] = useState(false);
@@ -147,6 +188,32 @@ export default function Site() {
     localStorage.setItem('kml_theme', theme);
   }, [theme]);
 
+  // Scroll-reveal: fade/rise elements in as they enter the viewport. Re-runs
+  // when `data` arrives so late-rendered sections (work rows, films) get wired.
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll<HTMLElement>('.reveal, .reveal-stagger'));
+    if (!('IntersectionObserver' in window) || !els.length) {
+      els.forEach((el) => el.classList.add('in'));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in');
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+    );
+    els.forEach((el) => {
+      if (el.classList.contains('in')) return;
+      io.observe(el);
+    });
+    return () => io.disconnect();
+  }, [data, filter]);
+
   const projects = useMemo(() => data?.projects ?? [], [data]);
   const cats = useMemo(() => ['All', ...(data?.categories.map((c) => c.name) ?? [])], [data]);
   const filtered = filter === 'All' ? projects : projects.filter((p) => p.category?.name === filter);
@@ -161,7 +228,9 @@ export default function Site() {
   const heroWords = heroHeadline.trim().split(/\s+/);
   const heroHead = heroWords.slice(0, -2).join(' ');
   const heroTail = heroWords.slice(-2).join(' ');
-  const clientList = data?.clients?.length ? data.clients.map((c) => c.name).filter(Boolean) : defaultClients;
+  const clientList: ClientItem[] = data?.clients?.length
+    ? data.clients.filter((c) => c.name || c.logo)
+    : defaultClients.map((name) => ({ name }));
   const statList = data?.stats?.length ? data.stats : defaultStats;
   const quoteList = data?.testimonials?.length ? data.testimonials.map((t) => ({ q: t.quote, a: t.author, r: t.role })) : defaultTestimonials;
   const lead = quoteList[0];
@@ -210,6 +279,20 @@ export default function Site() {
 
   const mono: CSSProperties = { fontFamily: 'var(--ui-font)' };
   const embed = activeVideo ? embedUrl(activeVideo.video_url) : null;
+
+  // 3D pointer tilt for feature cards.
+  const onTilt = (e: ReactMouseEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    el.style.setProperty('--ry', `${px * 9}deg`);
+    el.style.setProperty('--rx', `${-py * 9}deg`);
+  };
+  const resetTilt = (e: ReactMouseEvent<HTMLDivElement>) => {
+    e.currentTarget.style.setProperty('--ry', '0deg');
+    e.currentTarget.style.setProperty('--rx', '0deg');
+  };
 
   return (
     <div className={`site-root${theme === 'dark' ? ' dark' : ''}`}>
@@ -301,18 +384,18 @@ export default function Site() {
         />
 
         <div style={{ position: 'relative', zIndex: 3, width: '100%', maxWidth: 1360, margin: '0 auto', padding: '76px 40px 0', color: '#F7F6FB' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 15px', border: '1px solid rgba(255,255,255,.24)', borderRadius: 100, ...mono, fontSize: 11.5, letterSpacing: 2, textTransform: 'uppercase', color: '#EDEBF6', marginBottom: 30 }}>
+          <div className="hero-in hero-in-1" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 15px', border: '1px solid rgba(255,255,255,.24)', borderRadius: 100, ...mono, fontSize: 11.5, letterSpacing: 2, textTransform: 'uppercase', color: '#EDEBF6', marginBottom: 30 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#E86FA6', boxShadow: '0 0 12px #E86FA6', animation: 'kmlbob 2.4s ease-in-out infinite' }} />
             {heroKicker}
           </div>
-          <h1 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: -3, lineHeight: 0.9, margin: 0, fontSize: 'clamp(56px,8.4vw,116px)', maxWidth: '14ch', textShadow: hasHeroVideo ? '0 2px 30px rgba(6,5,12,.6)' : undefined }}>
+          <h1 className="hero-in hero-in-2" style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: -3, lineHeight: 0.9, margin: 0, fontSize: 'clamp(56px,8.4vw,116px)', maxWidth: '14ch', textShadow: hasHeroVideo ? '0 2px 30px rgba(6,5,12,.6)' : undefined }}>
             {heroHead && <>{heroHead} </>}
-            <span style={{ background: 'linear-gradient(100deg,#F49AC1,#B48BEB 45%,#7C89FF)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', filter: hasHeroVideo ? 'drop-shadow(0 2px 18px rgba(6,5,12,.55))' : undefined }}>{heroTail}</span>
+            <span className="grad-text-anim" style={{ background: 'linear-gradient(100deg,#F49AC1,#B48BEB 35%,#7C89FF 65%,#F49AC1)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', filter: hasHeroVideo ? 'drop-shadow(0 2px 18px rgba(6,5,12,.55))' : undefined }}>{heroTail}</span>
           </h1>
-          <p style={{ fontSize: 19, lineHeight: 1.6, color: '#CFCDE0', maxWidth: 520, margin: '30px 0 0', textShadow: hasHeroVideo ? '0 1px 16px rgba(6,5,12,.7)' : undefined }}>
+          <p className="hero-in hero-in-3" style={{ fontSize: 19, lineHeight: 1.6, color: '#CFCDE0', maxWidth: 520, margin: '30px 0 0', textShadow: hasHeroVideo ? '0 1px 16px rgba(6,5,12,.7)' : undefined }}>
             {heroSub}
           </p>
-          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center', marginTop: 40 }}>
+          <div className="hero-in hero-in-4" style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center', marginTop: 40 }}>
             <button
               onClick={showreelSrc ? openShowreel : scrollToContact}
               className="clip-btn-lg"
@@ -336,7 +419,9 @@ export default function Site() {
           <span>● REC — SHOWREEL 2026 · 4K / 24FPS</span>
           <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
             Scroll
-            <span style={{ width: 1, height: 32, background: 'linear-gradient(#8354C9,transparent)' }} />
+            <span style={{ position: 'relative', width: 1, height: 32, background: 'linear-gradient(#8354C9,transparent)', overflow: 'hidden' }}>
+              <span style={{ position: 'absolute', top: 0, left: -1.5, width: 4, height: 4, borderRadius: '50%', background: '#E86FA6', boxShadow: '0 0 8px #E86FA6', animation: 'kmlscroll 1.8s ease-in-out infinite' }} />
+            </span>
           </span>
           <span>EST. 2019 — 250+ PROJECTS</span>
         </div>
@@ -356,20 +441,31 @@ export default function Site() {
 
       {/* CLIENTS */}
       <section style={{ maxWidth: 1360, margin: '0 auto', padding: '56px 40px 60px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 30 }}>
+        <div className="reveal" style={{ textAlign: 'center', marginBottom: 30 }}>
           <div className="site-kicker" style={{ marginBottom: 12 }}>( Trusted by brands &amp; creators )</div>
           <h2 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 30, letterSpacing: -1, margin: 0 }}>Trusted by brands &amp; creators</h2>
         </div>
         <div className="logo-slider">
           <div className="logo-slider-track">
-            {[...clientList, ...clientList].map((c, i) => (
-              <span
-                key={i}
-                style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 22, color: 'var(--smuted)', letterSpacing: 0.5, whiteSpace: 'nowrap', padding: '0 34px', opacity: 0.75 }}
-              >
-                {c}
-              </span>
-            ))}
+            {[...clientList, ...clientList].map((c, i) =>
+              c.logo ? (
+                <span key={i} style={{ display: 'inline-flex', alignItems: 'center', padding: '0 34px' }}>
+                  <img
+                    className="client-logo"
+                    src={c.logo}
+                    alt={c.name || 'Client logo'}
+                    style={{ height: 40, maxWidth: 150, objectFit: 'contain', display: 'block' }}
+                  />
+                </span>
+              ) : (
+                <span
+                  key={i}
+                  style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 22, color: 'var(--smuted)', letterSpacing: 0.5, whiteSpace: 'nowrap', padding: '0 34px', opacity: 0.75 }}
+                >
+                  {c.name}
+                </span>
+              ),
+            )}
           </div>
         </div>
       </section>
@@ -377,15 +473,15 @@ export default function Site() {
       {/* ABOUT */}
       <section id="about" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: 76 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: '96px 40px', display: 'grid', gridTemplateColumns: '.9fr 1.4fr', gap: 70 }}>
-          <div>
-            <div className="site-kicker" style={{ marginBottom: 26 }}>( 01 — About the studio )</div>
+          <div className="reveal reveal-l">
+            <div className="site-kicker" style={{ marginBottom: 26 }}>( About the studio )</div>
             <Placeholder label="Behind-the-scenes / crew on set" style={{ width: '100%', height: 420, clipPath: 'polygon(0 2%, 100% 0, 98% 98%, 3% 100%)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', ...mono, fontSize: 11.5, letterSpacing: 1.5, color: 'var(--sfaint)', textTransform: 'uppercase', marginTop: 12 }}>
               <span>ON SET — DAY 14</span>
               <span>F2.8 / 24FPS</span>
             </div>
           </div>
-          <div>
+          <div className="reveal reveal-r" style={{ transitionDelay: '0.12s' }}>
             <h2 className="site-h2" style={{ lineHeight: 1, margin: '0 0 30px' }}>Storytelling meets cinematic craft</h2>
             <p style={{ fontSize: 17.5, lineHeight: 1.75, color: 'var(--smuted)', margin: '0 0 16px', maxWidth: 620 }}>
               We are a full-service video production company dedicated to creating powerful visual stories. From concept development to post-production, our team combines creativity, strategy, and cutting-edge technology to produce high-quality content for brands, businesses, and creators.
@@ -404,7 +500,7 @@ export default function Site() {
             <div style={{ display: 'flex', gap: 56, marginTop: 44 }}>
               {statList.map((st) => (
                 <div key={st.label}>
-                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 46, lineHeight: 1, letterSpacing: -1 }}>{st.value}</div>
+                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 46, lineHeight: 1, letterSpacing: -1 }}><Counter value={st.value} /></div>
                   <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--sfaint)', marginTop: 8 }}>{st.label}</div>
                 </div>
               ))}
@@ -416,11 +512,11 @@ export default function Site() {
       {/* SERVICES */}
       <section id="services" style={{ borderTop: '1px solid var(--sline-16)', background: 'var(--ssurface)', scrollMarginTop: 76 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: '96px 40px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 60, flexWrap: 'wrap', gap: 16 }}>
-            <div className="site-kicker">( 02 — What we do )</div>
+          <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 60, flexWrap: 'wrap', gap: 16 }}>
+            <div className="site-kicker">( What we do )</div>
             <h2 className="site-h2">End-to-end production</h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)' }}>
+          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)' }}>
             {services.map((s) => (
               <div key={s.phase} style={{ borderLeft: '1px solid var(--sline-16)', padding: '6px 34px 10px' }}>
                 <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 70, lineHeight: 1, letterSpacing: -2, background: 'linear-gradient(120deg,#E86FA6,#8354C9 55%,#2B39B8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', marginBottom: 16 }}>
@@ -443,15 +539,16 @@ export default function Site() {
       {/* WORK INDEX */}
       <section id="work" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: 76 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: '96px 40px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 18, marginBottom: 20 }}>
+          <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 18, marginBottom: 20 }}>
             <div>
-              <div className="site-kicker" style={{ marginBottom: 14 }}>( 03 — Selected work )</div>
+              <div className="site-kicker" style={{ marginBottom: 14 }}>( Selected work )</div>
               <h2 className="site-h2">Our work speaks for itself</h2>
             </div>
             <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
               {cats.map((c) => (
                 <button
                   key={c}
+                  className="cat-tab"
                   onClick={() => setFilter(c)}
                   style={{
                     padding: '8px 2px',
@@ -472,7 +569,7 @@ export default function Site() {
               ))}
             </div>
           </div>
-          <div style={{ borderTop: '1px solid var(--sline-2)' }}>
+          <div className="reveal-stagger" style={{ borderTop: '1px solid var(--sline-2)' }}>
             {filtered.map((p, i) => (
               <div
                 key={p.id}
@@ -489,7 +586,7 @@ export default function Site() {
                 </div>
                 <div style={{ ...mono, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--smuted)', textAlign: 'right' }}>{p.category?.name}</div>
                 {p.thumbnail_url ? (
-                  <div style={{ width: 190, height: 110, justifySelf: 'end', clipPath: 'polygon(0 4%, 100% 0, 97% 100%, 2% 96%)', background: `url(${p.thumbnail_url}) center/cover no-repeat` }} />
+                  <div className="work-thumb" style={{ width: 190, height: 110, justifySelf: 'end', clipPath: 'polygon(0 4%, 100% 0, 97% 100%, 2% 96%)', background: `url(${p.thumbnail_url}) center/cover no-repeat` }} />
                 ) : (
                   <Placeholder label={p.category?.name ?? ''} style={{ width: 190, height: 110, justifySelf: 'end', clipPath: 'polygon(0 4%, 100% 0, 97% 100%, 2% 96%)' }} />
                 )}
@@ -501,19 +598,22 @@ export default function Site() {
       </section>
 
       {/* FILMS & ANIMATIONS */}
-      <section style={{ borderTop: '1px solid var(--sline-16)', background: '#0C0A16', color: '#F7F6FB' }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto', padding: '96px 40px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 16, marginBottom: 44 }}>
-            <div className="site-kicker" style={{ color: '#C9A8FF' }}>( 04 — Films &amp; animations )</div>
+      <section style={{ position: 'relative', borderTop: '1px solid var(--sline-16)', background: '#0C0A16', color: '#F7F6FB', overflow: 'hidden' }}>
+        <div className="kml-blob" style={{ top: '-6%', left: '-4%', width: 380, height: 380, background: 'rgba(131,84,201,.5)' }} />
+        <div className="kml-blob" style={{ bottom: '-8%', right: '-2%', width: 420, height: 420, background: 'rgba(43,57,184,.45)', animationDelay: '-6s' }} />
+        <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: '96px 40px' }}>
+          <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 16, marginBottom: 44 }}>
+            <div className="site-kicker" style={{ color: '#C9A8FF' }}>( Films &amp; animations )</div>
             <h2 className="site-h2">Motion that sells the space</h2>
           </div>
 
           {featured && (
-            <div onClick={() => openVideo(featured)} style={{ position: 'relative', borderRadius: 4, overflow: 'hidden', cursor: 'pointer', marginBottom: 20, aspectRatio: '21/9' }}>
+            <div className="reveal reveal-scale" style={{ marginBottom: 20 }}>
+            <div className="tilt" onMouseMove={onTilt} onMouseLeave={resetTilt} onClick={() => openVideo(featured)} style={{ position: 'relative', borderRadius: 4, overflow: 'hidden', cursor: 'pointer', aspectRatio: '21/9' }}>
               {featured.thumbnail_url ? (
-                <div style={{ position: 'absolute', inset: 0, background: `url(${featured.thumbnail_url}) center/cover no-repeat` }} />
+                <div className="film-bg" style={{ position: 'absolute', inset: 0, background: `url(${featured.thumbnail_url}) center/cover no-repeat` }} />
               ) : (
-                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(1000px 500px at 40% 50%,rgba(131,84,201,.5),transparent 65%),#141021' }} />
+                <div className="film-bg" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(1000px 500px at 40% 50%,rgba(131,84,201,.5),transparent 65%),#141021' }} />
               )}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,rgba(12,10,22,.85),rgba(12,10,22,.15) 60%,rgba(12,10,22,.55))', pointerEvents: 'none' }} />
               <div style={{ position: 'absolute', left: 44, bottom: 40, right: 44, pointerEvents: 'none', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
@@ -529,15 +629,16 @@ export default function Site() {
                 </div>
               </div>
             </div>
+            </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
             {gridFilms.map((v) => (
-              <div key={v.id} onClick={() => openVideo(v)} style={{ position: 'relative', borderRadius: 4, overflow: 'hidden', cursor: 'pointer', aspectRatio: '16/9' }}>
+              <div key={v.id} className="film-card" onClick={() => openVideo(v)} style={{ position: 'relative', borderRadius: 4, overflow: 'hidden', cursor: 'pointer', aspectRatio: '16/9' }}>
                 {v.thumbnail_url ? (
-                  <div style={{ position: 'absolute', inset: 0, background: `url(${v.thumbnail_url}) center/cover no-repeat` }} />
+                  <div className="film-bg" style={{ position: 'absolute', inset: 0, background: `url(${v.thumbnail_url}) center/cover no-repeat` }} />
                 ) : (
-                  <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(500px 300px at 50% 50%,rgba(43,57,184,.45),transparent 70%),#151126' }} />
+                  <div className="film-bg" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(500px 300px at 50% 50%,rgba(43,57,184,.45),transparent 70%),#151126' }} />
                 )}
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg,rgba(12,10,22,.9),rgba(12,10,22,.05) 60%)', pointerEvents: 'none' }} />
                 <div style={{ position: 'absolute', top: 14, right: 14, ...mono, fontSize: 11, letterSpacing: 1, color: '#fff', background: 'rgba(12,10,22,.6)', backdropFilter: 'blur(6px)', padding: '4px 9px', borderRadius: 100, pointerEvents: 'none' }}>
@@ -557,16 +658,18 @@ export default function Site() {
       </section>
 
       {/* PROCESS */}
-      <section id="process" style={{ borderTop: '1px solid var(--sline-16)', background: '#17153A', color: '#F7F6FB', scrollMarginTop: 76 }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto', padding: '96px 40px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 70, flexWrap: 'wrap', gap: 16 }}>
-            <div className="site-kicker" style={{ color: '#E86FA6' }}>( 05 — How we work )</div>
+      <section id="process" style={{ position: 'relative', borderTop: '1px solid var(--sline-16)', background: '#17153A', color: '#F7F6FB', scrollMarginTop: 76, overflow: 'hidden' }}>
+        <div className="kml-blob" style={{ top: '10%', right: '-5%', width: 360, height: 360, background: 'rgba(232,111,166,.35)' }} />
+        <div className="kml-blob" style={{ bottom: '-10%', left: '-4%', width: 400, height: 400, background: 'rgba(131,84,201,.4)', animationDelay: '-8s' }} />
+        <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: '96px 40px' }}>
+          <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 70, flexWrap: 'wrap', gap: 16 }}>
+            <div className="site-kicker" style={{ color: '#E86FA6' }}>( How we work )</div>
             <h2 className="site-h2">Our production process</h2>
           </div>
-          <div style={{ position: 'relative', height: 4, background: 'rgba(247,246,251,.14)', marginBottom: 40 }}>
-            <div style={{ position: 'absolute', inset: 0, width: '72%', background: 'linear-gradient(90deg,#E86FA6,#8354C9,#2B39B8)' }} />
+          <div className="reveal" style={{ position: 'relative', height: 4, background: 'rgba(247,246,251,.14)', marginBottom: 40 }}>
+            <div className="proc-bar-fill" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, background: 'linear-gradient(90deg,#E86FA6,#8354C9,#2B39B8)' }} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 26 }}>
+          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 26 }}>
             {processSteps.map((s) => (
               <div key={s.n}>
                 <div style={{ ...mono, fontSize: 12, letterSpacing: 1.5, color: '#85829B', marginBottom: 14 }}>TC {s.tc}:00</div>
@@ -582,15 +685,15 @@ export default function Site() {
 
       {/* TESTIMONIAL */}
       <section style={{ borderTop: '1px solid var(--sline-16)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '110px 40px', textAlign: 'center' }}>
-          <div className="site-kicker" style={{ marginBottom: 34 }}>( 06 — What clients say )</div>
+        <div className="reveal" style={{ maxWidth: 1100, margin: '0 auto', padding: '110px 40px', textAlign: 'center' }}>
+          <div className="site-kicker" style={{ marginBottom: 34 }}>( What clients say )</div>
           <p style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 40, lineHeight: 1.25, letterSpacing: -1, margin: '0 0 36px' }}>
             “{lead.q}”
           </p>
           <div style={{ ...mono, fontSize: 12.5, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--smuted)' }}>{lead.a}{lead.r ? ` — ${lead.r}` : ''}</div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 40, marginTop: 60, paddingTop: 44, borderTop: '1px solid var(--sline-12)' }}>
+          <div className="reveal-stagger" style={{ display: 'flex', justifyContent: 'center', gap: 40, marginTop: 60, paddingTop: 44, borderTop: '1px solid var(--sline-12)' }}>
             {quoteList.map((t, i) => (
-              <div key={i} style={{ maxWidth: 280, textAlign: 'left' }}>
+              <div key={i} className="quote-card" style={{ maxWidth: 280, textAlign: 'left' }}>
                 <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--smuted)', margin: '0 0 12px' }}>“{t.q}”</p>
                 <div style={{ ...mono, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--sfaint)' }}>
                   {t.a}{t.r ? ` — ${t.r}` : ''}
@@ -604,21 +707,21 @@ export default function Site() {
       {/* GEAR */}
       <section style={{ borderTop: '1px solid var(--sline-16)', background: 'var(--ssurface)' }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: '96px 40px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 70, alignItems: 'center' }}>
-          <div>
-            <div className="site-kicker" style={{ marginBottom: 20 }}>( 07 — The gear )</div>
+          <div className="reveal reveal-l">
+            <div className="site-kicker" style={{ marginBottom: 20 }}>( The gear )</div>
             <h2 className="site-h2" style={{ fontSize: 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 22px' }}>Professional gear. Professional results.</h2>
             <p style={{ fontSize: 17, lineHeight: 1.7, color: 'var(--smuted)', margin: '0 0 36px', maxWidth: 520 }}>
               We shoot on cinema-grade equipment and light every frame with intent — so your story looks as premium as your brand.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
               {equipment.map((e) => (
-                <span key={e} style={{ padding: '11px 18px', border: '1px solid var(--sline-25)', ...mono, fontSize: 12.5, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--sink)', clipPath: 'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)' }}>
+                <span key={e} className="gear-pill" style={{ padding: '11px 18px', border: '1px solid var(--sline-25)', ...mono, fontSize: 12.5, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--sink)', clipPath: 'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)' }}>
                   {e}
                 </span>
               ))}
             </div>
           </div>
-          <div>
+          <div className="reveal reveal-r" style={{ transitionDelay: '0.12s' }}>
             <Placeholder label="Studio / camera rig photo" style={{ width: '100%', height: 400, clipPath: 'polygon(2% 0, 100% 2%, 98% 100%, 0 97%)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', ...mono, fontSize: 11.5, letterSpacing: 1.5, color: 'var(--sfaint)', textTransform: 'uppercase', marginTop: 12 }}>
               <span>STAGE A — RIG 02</span>
@@ -630,7 +733,7 @@ export default function Site() {
 
       {/* CTA */}
       <section style={{ borderTop: '1px solid var(--sline-16)', padding: '80px 40px' }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto', background: 'linear-gradient(115deg,#E86FA6,#8354C9 45%,#2B39B8)', clipPath: 'polygon(0 6%, 100% 0, 100% 94%, 0 100%)', padding: '110px 60px', textAlign: 'center', color: '#fff' }}>
+        <div className="reveal reveal-scale cta-grad" style={{ maxWidth: 1360, margin: '0 auto', background: 'linear-gradient(115deg,#E86FA6,#8354C9 45%,#2B39B8)', clipPath: 'polygon(0 6%, 100% 0, 100% 94%, 0 100%)', padding: '110px 60px', textAlign: 'center', color: '#fff' }}>
           <h2 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 64, letterSpacing: -2, textTransform: 'uppercase', lineHeight: 0.98, margin: '0 0 20px' }}>Let's create something amazing</h2>
           <p style={{ fontSize: 18, margin: '0 0 40px', opacity: 0.92 }}>Have a project in mind? Let's bring your vision to life.</p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -647,8 +750,8 @@ export default function Site() {
       {/* CONTACT */}
       <section id="contact" ref={contactRef} style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: 76 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: '96px 40px', display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: 80 }}>
-          <div>
-            <div className="site-kicker" style={{ marginBottom: 20 }}>( 08 — Get in touch )</div>
+          <div className="reveal reveal-l">
+            <div className="site-kicker" style={{ marginBottom: 20 }}>( Get in touch )</div>
             <h2 className="site-h2" style={{ fontSize: 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 40px' }}>Start the conversation</h2>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {[
@@ -676,7 +779,7 @@ export default function Site() {
               </div>
             </div>
           </div>
-          <form onSubmit={(e) => void submit(e)}>
+          <form className="reveal reveal-r" style={{ transitionDelay: '0.12s' }} onSubmit={(e) => void submit(e)}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '26px 30px' }}>
               <div>
                 <label className="k-label" style={{ marginBottom: 10, color: 'var(--sfaint)' }}>Name</label>

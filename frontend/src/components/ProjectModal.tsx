@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, errorMessage } from '../api';
 import type { Category, Project } from '../types';
-import { Modal, ErrorBox } from './ui';
+import { Modal, ErrorBox, ProgressBar } from './ui';
 
 export function ProjectModal({ project, onClose, onSaved }: { project: Project | null; onClose: () => void; onSaved: () => void }) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -16,6 +16,7 @@ export function ProjectModal({ project, onClose, onSaved }: { project: Project |
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [pct, setPct] = useState<number | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -43,14 +44,20 @@ export function ProjectModal({ project, onClose, onSaved }: { project: Project |
     form.append('status', status);
     if (file) form.append('thumbnail', file);
     if (project) form.append('_method', 'PUT');
+    if (file) setPct(0);
     try {
-      await api.post(project ? `/projects/${project.id}` : '/projects', form);
+      await api.post(project ? `/projects/${project.id}` : '/projects', form, {
+        onUploadProgress: file
+          ? (e) => setPct(e.total ? (e.loaded / e.total) * 100 : null)
+          : undefined,
+      });
       onSaved();
       onClose();
     } catch (err) {
       setError(errorMessage(err));
     } finally {
       setBusy(false);
+      setPct(null);
     }
   };
 
@@ -103,6 +110,7 @@ export function ProjectModal({ project, onClose, onSaved }: { project: Project |
           )}
         </div>
         <input ref={fileInput} type="file" accept="image/*" hidden onChange={(e) => pick(e.target.files?.[0])} />
+        <ProgressBar value={pct} label="Uploading thumbnail" />
       </div>
       <div>
         <label className="k-label">Title</label>

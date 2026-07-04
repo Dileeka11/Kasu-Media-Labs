@@ -67,6 +67,7 @@ export interface Stat {
 
 export interface ClientItem {
   name: string;
+  logo?: string | null;
 }
 
 export interface Testimonial {

@@ -197,3 +197,37 @@ export function ErrorBox({ children, style }: { children: ReactNode; style?: CSS
     </div>
   );
 }
+
+/**
+ * Slim upload progress bar. Render only while an upload is in flight
+ * (i.e. `value` is a number 0–100); pass `null`/`undefined` to hide it.
+ */
+export function ProgressBar({ value, label }: { value: number | null | undefined; label?: string }) {
+  if (value == null) return null;
+  const pct = Math.max(0, Math.min(100, Math.round(value)));
+  return (
+    <div style={{ marginTop: 8 }}>
+      <div
+        style={{
+          height: 6,
+          borderRadius: 100,
+          background: 'rgba(23,21,58,.12)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            background: 'var(--grad)',
+            borderRadius: 100,
+            transition: 'width .2s ease',
+          }}
+        />
+      </div>
+      <div className="k-mono" style={{ marginTop: 5, fontSize: 10 }}>
+        {label ?? 'Uploading'} — {pct}%
+      </div>
+    </div>
+  );
+}

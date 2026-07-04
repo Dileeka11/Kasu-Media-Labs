@@ -60,6 +60,7 @@ class SettingController extends Controller
             // Clients
             'clients' => ['sometimes', 'nullable', 'array', 'max:40'],
             'clients.*.name' => ['required', 'string', 'max:80'],
+            'clients.*.logo' => ['nullable', 'string', 'max:500'],
 
             // Testimonials
             'testimonials' => ['sometimes', 'nullable', 'array', 'max:20'],
@@ -101,6 +102,31 @@ class SettingController extends Controller
         $setting->save();
 
         return response()->json($setting);
+    }
+
+    /**
+     * Upload a single client brand logo and return its public URL. The URL is
+     * stored directly on the client item (via the normal settings save), which
+     * keeps the JSON array self-contained. An optional `old` URL is deleted so
+     * replacing a logo doesn't leave the previous file orphaned.
+     */
+    public function clientLogo(Request $request): JsonResponse
+    {
+        $request->validate([
+            'logo' => ['required', 'image', 'max:4096'],
+            'old' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($old = $request->input('old')) {
+            $prefix = asset('storage/');
+            if (str_starts_with($old, $prefix)) {
+                Storage::disk('public')->delete(ltrim(substr($old, strlen($prefix)), '/'));
+            }
+        }
+
+        $path = $request->file('logo')->store('clients', 'public');
+
+        return response()->json(['url' => asset('storage/'.$path)]);
     }
 
     /** Remove an uploaded logo or hero video. */

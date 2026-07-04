@@ -30,4 +30,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings', [SettingController::class, 'update']);
     Route::post('/settings/media', [SettingController::class, 'media']);
     Route::post('/settings/media/clear', [SettingController::class, 'clearMedia']);
+    Route::post('/settings/client-logo', [SettingController::class, 'clientLogo']);
 });
