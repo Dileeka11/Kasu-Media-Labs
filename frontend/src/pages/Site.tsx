@@ -64,6 +64,15 @@ const defaultStats = [
   { value: '40+', label: 'Brands served' },
 ];
 
+const objectives = [
+  { n: '01', t: 'Deliver High-Quality Productions', d: 'Produce professional, cinematic videos that meet international production standards.' },
+  { n: '02', t: 'Support Brand Storytelling', d: 'Help businesses communicate their identity and message through impactful visual content.' },
+  { n: '03', t: 'Provide End-to-End Services', d: 'Concept development, filming, editing, and post-production under one roof.' },
+  { n: '04', t: 'Innovate with Technology', d: 'Use the latest cameras, drones, editing tools, and visual effects to elevate quality.' },
+  { n: '05', t: 'Build Long-Term Relationships', d: 'Establish trusted partnerships with brands, agencies, and organizations.' },
+  { n: '06', t: 'Create Engaging Digital Content', d: 'Videos optimized for social media, marketing campaigns, and digital platforms.' },
+];
+
 const equipment = ['Cinema Cameras', 'Professional Lighting', 'Aerial Drones', 'Gimbal Stabilizers', 'Sound Equipment', 'Full Studio Setup'];
 const defaultClients = ['NOVA', 'Atlas Group', 'Vertex', 'LUMEN', 'Skyline', 'Orbit Media', 'Frameworks', 'Meridian'];
 const tickerItems = ['Commercials', 'Corporate Films', 'Product Videos', 'Drone Cinematography', 'Documentaries', 'Motion Graphics'];
@@ -168,6 +177,12 @@ export default function Site() {
   const [form, setForm] = useState({ name: '', email: '', company: '', type: '', budget: '', message: '' });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState('');
+  const [dataReady, setDataReady] = useState(false);
+  const [minElapsed, setMinElapsed] = useState(false);
+  const [loaderGone, setLoaderGone] = useState(false);
+  // Remember the uploaded logo so the preloader (which renders before the API
+  // responds) can show the real brand mark instantly on repeat visits.
+  const [logoSrc, setLogoSrc] = useState<string | null>(() => localStorage.getItem('kml_logo'));
   const contactRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -178,11 +193,33 @@ export default function Site() {
   }, []);
 
   useEffect(() => {
-    void axios.get<SiteData>(`${API}/public/site`).then((res) => {
-      setData(res.data);
-      applyFont(res.data.font); // match the studio font chosen in admin Settings
-    });
+    void axios
+      .get<SiteData>(`${API}/public/site`)
+      .then((res) => {
+        setData(res.data);
+        applyFont(res.data.font); // match the studio font chosen in admin Settings
+        if (res.data.logo_url) {
+          setLogoSrc(res.data.logo_url);
+          localStorage.setItem('kml_logo', res.data.logo_url); // cache for the next visit's preloader
+        } else {
+          localStorage.removeItem('kml_logo');
+        }
+      })
+      .finally(() => setDataReady(true)); // hide the loader even if the request fails (defaults kick in)
   }, []);
+
+  // Preloader timing: keep it on screen for at least a beat so it never flashes,
+  // then fade out once the site data has arrived, then drop it from the DOM.
+  useEffect(() => {
+    const t = setTimeout(() => setMinElapsed(true), 900);
+    return () => clearTimeout(t);
+  }, []);
+  const loaderHidden = dataReady && minElapsed;
+  useEffect(() => {
+    if (!loaderHidden) return;
+    const t = setTimeout(() => setLoaderGone(true), 550);
+    return () => clearTimeout(t);
+  }, [loaderHidden]);
 
   useEffect(() => {
     localStorage.setItem('kml_theme', theme);
@@ -296,6 +333,21 @@ export default function Site() {
 
   return (
     <div className={`site-root${theme === 'dark' ? ' dark' : ''}`}>
+      {/* PAGE PRELOADER */}
+      {!loaderGone && (
+        <div className={`kml-preloader${loaderHidden ? ' hide' : ''}`}>
+          <div className="kml-preloader-inner">
+            <div className="kml-spinner">
+              <img className="kml-preload-logo" src={data?.logo_url || logoSrc || '/favicon.svg'} alt={data?.studio_name || 'KML Production'} />
+            </div>
+            <div className="kml-preload-bar">
+              <span />
+            </div>
+            <div className="kml-preload-label">{data?.studio_name || 'KML Production'}</div>
+          </div>
+        </div>
+      )}
+
       {/* TOP BAR */}
       <nav className={`site-nav${scrolled ? ' scrolled' : ''}`}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -505,6 +557,45 @@ export default function Site() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* VISION / MISSION / OBJECTIVES */}
+      <section style={{ position: 'relative', borderTop: '1px solid var(--sline-16)', background: '#0C0A16', color: '#F7F6FB', overflow: 'hidden' }}>
+        <div className="kml-blob" style={{ top: '-8%', right: '-4%', width: 400, height: 400, background: 'rgba(232,111,166,.35)' }} />
+        <div className="kml-blob" style={{ bottom: '-10%', left: '-4%', width: 420, height: 420, background: 'rgba(43,57,184,.42)', animationDelay: '-7s' }} />
+        <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: '96px 40px' }}>
+          <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 16, marginBottom: 60 }}>
+            <div className="site-kicker" style={{ color: '#C9A8FF' }}>( Why we exist )</div>
+            <h2 className="site-h2">Vision, mission &amp; objectives</h2>
+          </div>
+
+          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+            <div style={{ padding: '40px 42px', border: '1px solid rgba(247,246,251,.14)', background: 'rgba(247,246,251,.03)', clipPath: 'polygon(0 3%, 100% 0, 98% 100%, 2% 97%)' }}>
+              <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: '#E86FA6', marginBottom: 18 }}>◎ Vision</div>
+              <p style={{ fontSize: 20, lineHeight: 1.55, color: '#E7E5F2', margin: 0, fontWeight: 500 }}>
+                To become a leading video production company recognized for creating powerful visual stories that inspire audiences, elevate brands, and set new standards in creative filmmaking.
+              </p>
+            </div>
+            <div style={{ padding: '40px 42px', border: '1px solid rgba(247,246,251,.14)', background: 'rgba(247,246,251,.03)', clipPath: 'polygon(2% 0, 100% 3%, 100% 97%, 0 100%)' }}>
+              <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: '#7C89FF', marginBottom: 18 }}>▲ Mission</div>
+              <p style={{ fontSize: 20, lineHeight: 1.55, color: '#E7E5F2', margin: 0, fontWeight: 500 }}>
+                To deliver high-quality, cinematic video productions by combining creativity, technology, and strategic storytelling — helping brands, businesses, and creators communicate messages that engage, inform, and inspire.
+              </p>
+            </div>
+          </div>
+
+          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)' }}>
+            {objectives.map((o) => (
+              <div key={o.n} style={{ borderTop: '1px solid rgba(247,246,251,.14)', borderLeft: '1px solid rgba(247,246,251,.14)', padding: '30px 30px 34px' }}>
+                <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 40, lineHeight: 1, letterSpacing: -1, background: 'linear-gradient(120deg,#E86FA6,#8354C9 55%,#2B39B8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', marginBottom: 16 }}>
+                  {o.n}
+                </div>
+                <h3 style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 20, letterSpacing: -0.3, margin: '0 0 12px' }}>{o.t}</h3>
+                <p style={{ fontSize: 14.5, lineHeight: 1.6, color: '#B4B1C9', margin: 0 }}>{o.d}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

@@ -203,6 +203,97 @@ button { cursor: pointer; }
   animation: kmlblob 16s ease-in-out infinite;
 }
 
+/* ---------- Full-screen page preloader ---------- */
+.kml-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(900px 600px at 50% 45%, rgba(131, 84, 201, .28), transparent 65%),
+    #0C0A16;
+  transition: opacity .5s ease, visibility .5s ease;
+}
+.kml-preloader.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.kml-preloader-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+}
+.kml-spinner {
+  position: relative;
+  width: 108px;
+  height: 108px;
+  display: grid;
+  place-items: center;
+}
+/* Rotating gradient conic ring, masked to a thin band. */
+.kml-spinner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, #E86FA6 90deg, #8354C9 200deg, #2B39B8 300deg, transparent 360deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+  animation: kmlspin 1s linear infinite;
+}
+.kml-spinner::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(247, 246, 251, .10);
+}
+/* Keep the logo pinned dead-center inside the rotating ring. */
+.kml-preload-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 42px;
+  height: auto;
+  z-index: 1;
+  animation: kmlpreloadpulse 1.8s ease-in-out infinite;
+}
+@keyframes kmlpreloadpulse {
+  0%, 100% { opacity: .85; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+}
+@keyframes kmlspin { to { transform: rotate(360deg); } }
+.kml-preload-bar {
+  width: 180px;
+  height: 3px;
+  border-radius: 100px;
+  background: rgba(247, 246, 251, .12);
+  overflow: hidden;
+}
+.kml-preload-bar span {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: 100px;
+  background: linear-gradient(90deg, #E86FA6, #8354C9, #2B39B8);
+  animation: kmlpreloadbar 1.2s ease-in-out infinite;
+}
+@keyframes kmlpreloadbar {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
+.kml-preload-label {
+  font-family: var(--ui-font);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #B4B1C9;
+}
+
 /* ---------- Self-drawing process bar ---------- */
 .proc-bar-fill {
   width: 0;
