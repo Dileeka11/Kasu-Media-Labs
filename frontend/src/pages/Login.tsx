@@ -81,7 +81,7 @@ export default function Login() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 11, position: 'relative' }}>
             <KLogo size={28} />
             <div style={{ lineHeight: 1 }}>
-              <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 19 }}>kml</div>
+              <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 19 }}>kml</div>
               <div style={{ fontSize: 8, letterSpacing: 3, opacity: 0.85, textTransform: 'uppercase' }}>Production</div>
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function Login() {
               background: 'var(--bg)',
               border: '1px dashed rgba(23,21,58,.2)',
               borderRadius: 4,
-              fontFamily: "'Space Mono', monospace",
+              fontFamily: 'var(--ui-font)',
               fontSize: 11.5,
               color: 'var(--ink-3)',
               lineHeight: 1.6,

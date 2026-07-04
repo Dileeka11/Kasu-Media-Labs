@@ -1,8 +1,8 @@
 // Central font registry, shared by the admin panel and the public website.
-// The chosen font is applied by setting the --ui-font CSS variable, which the
-// body / controls / nav / site-root consume in index.css. Design-signature
-// fonts (Space Grotesk headings, Space Mono labels) keep their explicit
-// families and are unaffected.
+// The chosen font is applied by setting the --ui-font CSS variable, which every
+// text element — body, controls, nav, headings and labels alike — consumes via
+// index.css and inline styles, so the selected font applies uniformly across
+// the entire site.
 
 export const FONT_OPTIONS = [
   { name: 'Manrope', stack: "'Manrope', system-ui, sans-serif" },

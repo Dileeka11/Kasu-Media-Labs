@@ -79,7 +79,7 @@ export default function Settings() {
               {busy ? 'Saving…' : 'Save changes'}
             </button>
             {saved && (
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: 'var(--green)', fontWeight: 700 }}>✓ Saved</span>
+              <span style={{ fontFamily: 'var(--ui-font)', fontSize: 12, color: 'var(--green)', fontWeight: 700 }}>✓ Saved</span>
             )}
           </div>
         </div>

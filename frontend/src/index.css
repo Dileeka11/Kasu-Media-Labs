@@ -68,8 +68,8 @@ button { cursor: pointer; }
   min-height: 100vh;
   background: var(--sbg);
   color: var(--sink);
-  /* Follows the studio font chosen in admin Settings (Space Grotesk display
-     headings and Space Mono labels keep their own families as accents). */
+  /* Follows the studio font chosen in admin Settings — applied uniformly
+     across the whole site, including headings and labels. */
   font-family: var(--ui-font);
 }
 
@@ -121,13 +121,13 @@ button { cursor: pointer; }
 }
 
 .site-mono {
-  font-family: 'Space Mono', monospace;
+  font-family: var(--ui-font);
   letter-spacing: 1.5px;
   text-transform: uppercase;
 }
 
 .site-h2 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--ui-font);
   font-weight: 700;
   font-size: 54px;
   letter-spacing: -1.8px;
@@ -136,7 +136,7 @@ button { cursor: pointer; }
 }
 
 .site-kicker {
-  font-family: 'Space Mono', monospace;
+  font-family: var(--ui-font);
   font-size: 12px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -167,7 +167,7 @@ button { cursor: pointer; }
 
 /* ---------- Typography helpers ---------- */
 .k-mono {
-  font-family: 'Space Mono', monospace;
+  font-family: var(--ui-font);
   font-size: 11px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -175,7 +175,7 @@ button { cursor: pointer; }
 }
 
 .k-h {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--ui-font);
   font-weight: 700;
   text-transform: uppercase;
   margin: 0;
@@ -196,7 +196,7 @@ button { cursor: pointer; }
 /* ---------- Inputs ---------- */
 .k-label {
   display: block;
-  font-family: 'Space Mono', monospace;
+  font-family: var(--ui-font);
   font-size: 11px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -230,7 +230,7 @@ select.k-input { appearance: none; cursor: pointer; }
   background: var(--grad);
   border: none;
   color: #fff;
-  font-family: 'Space Mono', monospace;
+  font-family: var(--ui-font);
   font-size: 12px;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -248,7 +248,7 @@ select.k-input { appearance: none; cursor: pointer; }
   background: #fff;
   border: 1px solid rgba(23, 21, 58, 0.28);
   color: var(--ink);
-  font-family: 'Space Mono', monospace;
+  font-family: var(--ui-font);
   font-size: 12px;
   letter-spacing: 1px;
   text-transform: uppercase;

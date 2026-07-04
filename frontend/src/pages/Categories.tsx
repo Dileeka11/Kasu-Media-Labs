@@ -77,8 +77,8 @@ export default function Categories() {
         {filtered.map((c) => (
           <div key={c.id} className="k-card" style={{ padding: 22, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 600, fontSize: 18, marginBottom: 5 }}>{c.name}</div>
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: 'var(--ink-3)' }}>
+              <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 18, marginBottom: 5 }}>{c.name}</div>
+              <div style={{ fontFamily: 'var(--ui-font)', fontSize: 12, color: 'var(--ink-3)' }}>
                 /{c.slug} · {c.projects_count ?? 0} projects
               </div>
             </div>

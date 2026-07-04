@@ -66,9 +66,9 @@ export default function Inquiries() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, flex: 'none' }}>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{q.type}</div>
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11.5, color: 'var(--ink-3)' }}>{q.budget}</div>
+              <div style={{ fontFamily: 'var(--ui-font)', fontSize: 11.5, color: 'var(--ink-3)' }}>{q.budget}</div>
             </div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11.5, color: 'var(--ink-3)', width: 56, textAlign: 'right' }}>
+            <div style={{ fontFamily: 'var(--ui-font)', fontSize: 11.5, color: 'var(--ink-3)', width: 56, textAlign: 'right' }}>
               {relTimeShort(q.created_at)}
             </div>
             <button
@@ -78,7 +78,7 @@ export default function Inquiries() {
                 background: '#fff',
                 border: '1px solid #17153A',
                 color: '#17153A',
-                fontFamily: "'Space Mono', monospace",
+                fontFamily: 'var(--ui-font)',
                 fontSize: 11.5,
                 letterSpacing: 1,
                 textTransform: 'uppercase',

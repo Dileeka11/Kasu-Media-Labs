@@ -80,7 +80,7 @@ function Placeholder({ label, style }: { label: string; style?: CSSProperties })
         display: 'grid',
         placeItems: 'center',
         color: 'var(--sfaint)',
-        fontFamily: "'Space Mono', monospace",
+        fontFamily: 'var(--ui-font)',
         fontSize: 11.5,
         letterSpacing: 1.5,
         textTransform: 'uppercase',
@@ -150,7 +150,7 @@ export default function Site() {
     }
   };
 
-  const mono: CSSProperties = { fontFamily: "'Space Mono', monospace" };
+  const mono: CSSProperties = { fontFamily: 'var(--ui-font)' };
   const embed = activeVideo ? embedUrl(activeVideo.video_url) : null;
 
   return (
@@ -160,7 +160,7 @@ export default function Site() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
           <KLogo gradient size={26} />
           <div style={{ lineHeight: 1, color: 'var(--navfg)' }}>
-            <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 18, letterSpacing: 0.4 }}>kml</div>
+            <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 18, letterSpacing: 0.4 }}>kml</div>
             <div style={{ fontSize: 8, letterSpacing: 3, opacity: 0.65, textTransform: 'uppercase', marginTop: 1 }}>Production</div>
           </div>
         </div>
@@ -204,7 +204,7 @@ export default function Site() {
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#E86FA6', boxShadow: '0 0 12px #E86FA6', animation: 'kmlbob 2.4s ease-in-out infinite' }} />
             Full-Service Video Production House
           </div>
-          <h1 style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, textTransform: 'uppercase', letterSpacing: -3, lineHeight: 0.9, margin: 0, fontSize: 'clamp(56px,8.4vw,116px)', maxWidth: '14ch' }}>
+          <h1 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: -3, lineHeight: 0.9, margin: 0, fontSize: 'clamp(56px,8.4vw,116px)', maxWidth: '14ch' }}>
             We Create Videos That{' '}
             <span style={{ background: 'linear-gradient(100deg,#F49AC1,#B48BEB 45%,#7C89FF)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Move People</span>
           </h1>
@@ -245,7 +245,7 @@ export default function Site() {
       <div style={{ marginTop: 70, borderTop: '1px solid var(--sline-16)', borderBottom: '1px solid var(--sline-16)', overflow: 'hidden', padding: '16px 0', background: 'var(--ssurface)' }}>
         <div style={{ display: 'flex', width: 'max-content', animation: 'kmlticker 30s linear infinite' }}>
           {[...tickerItems, ...tickerItems].map((t, i) => (
-            <span key={i} style={{ fontFamily: "'Space Grotesk'", fontWeight: 600, fontSize: 20, textTransform: 'uppercase', letterSpacing: 1, whiteSpace: 'nowrap', paddingRight: 18 }}>
+            <span key={i} style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 20, textTransform: 'uppercase', letterSpacing: 1, whiteSpace: 'nowrap', paddingRight: 18 }}>
               {t}
               <span style={{ color: '#8354C9', paddingLeft: 18 }}>✦</span>
             </span>
@@ -258,7 +258,7 @@ export default function Site() {
         <span style={{ ...mono, fontSize: 11.5, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--sfaint)', flex: 'none' }}>Trusted by</span>
         <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'center' }}>
           {clients.map((c) => (
-            <span key={c} style={{ fontFamily: "'Space Grotesk'", fontWeight: 600, fontSize: 17, color: 'var(--smuted)', letterSpacing: 0.5 }}>
+            <span key={c} style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 17, color: 'var(--smuted)', letterSpacing: 0.5 }}>
               {c}
             </span>
           ))}
@@ -299,7 +299,7 @@ export default function Site() {
                 ['40+', 'Brands served'],
               ].map(([v, l]) => (
                 <div key={l}>
-                  <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 46, lineHeight: 1, letterSpacing: -1 }}>{v}</div>
+                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 46, lineHeight: 1, letterSpacing: -1 }}>{v}</div>
                   <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--sfaint)', marginTop: 8 }}>{l}</div>
                 </div>
               ))}
@@ -318,10 +318,10 @@ export default function Site() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)' }}>
             {services.map((s) => (
               <div key={s.phase} style={{ borderLeft: '1px solid var(--sline-16)', padding: '6px 34px 10px' }}>
-                <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 70, lineHeight: 1, letterSpacing: -2, background: 'linear-gradient(120deg,#E86FA6,#8354C9 55%,#2B39B8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', marginBottom: 16 }}>
+                <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 70, lineHeight: 1, letterSpacing: -2, background: 'linear-gradient(120deg,#E86FA6,#8354C9 55%,#2B39B8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', marginBottom: 16 }}>
                   {s.phase}
                 </div>
-                <h3 style={{ fontFamily: "'Space Grotesk'", fontWeight: 600, fontSize: 24, textTransform: 'uppercase', letterSpacing: -0.3, margin: '0 0 24px' }}>{s.tag}</h3>
+                <h3 style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 24, textTransform: 'uppercase', letterSpacing: -0.3, margin: '0 0 24px' }}>{s.tag}</h3>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {s.items.map((it) => (
                     <div key={it} style={{ fontSize: 15, color: 'var(--smuted)', padding: '11px 0', borderTop: '1px solid var(--sline-1)' }}>
@@ -377,7 +377,7 @@ export default function Site() {
               >
                 <div style={{ ...mono, fontSize: 14, color: 'var(--sfaint)' }}>{String(i + 1).padStart(2, '0')}</div>
                 <div>
-                  <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 34, letterSpacing: -1, textTransform: 'uppercase', lineHeight: 1.05 }}>{p.title}</div>
+                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 34, letterSpacing: -1, textTransform: 'uppercase', lineHeight: 1.05 }}>{p.title}</div>
                   <div style={{ ...mono, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--sfaint)', marginTop: 8 }}>
                     {p.client ?? '—'} — {p.duration ?? '—'}
                   </div>
@@ -414,7 +414,7 @@ export default function Site() {
               <div style={{ position: 'absolute', left: 44, bottom: 40, right: 44, pointerEvents: 'none', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
                 <div>
                   <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: '#C9A8FF', marginBottom: 12 }}>● Now playing — Featured</div>
-                  <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 44, letterSpacing: -1.4, textTransform: 'uppercase', lineHeight: 1 }}>{featured.title}</div>
+                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 44, letterSpacing: -1.4, textTransform: 'uppercase', lineHeight: 1 }}>{featured.title}</div>
                   <div style={{ ...mono, fontSize: 12.5, letterSpacing: 1, textTransform: 'uppercase', color: '#B4B1C9', marginTop: 8 }}>
                     {featured.client ?? '—'} — {featured.duration ?? '—'}
                   </div>
@@ -442,7 +442,7 @@ export default function Site() {
                   <span style={{ borderLeft: '15px solid #fff', borderTop: '9px solid transparent', borderBottom: '9px solid transparent', marginLeft: 4 }} />
                 </div>
                 <div style={{ position: 'absolute', left: 16, bottom: 14, right: 16, pointerEvents: 'none' }}>
-                  <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 600, fontSize: 19, textTransform: 'uppercase', lineHeight: 1.05 }}>{v.title}</div>
+                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 19, textTransform: 'uppercase', lineHeight: 1.05 }}>{v.title}</div>
                   <div style={{ ...mono, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: '#B4B1C9', marginTop: 5 }}>{v.client ?? '—'}</div>
                 </div>
               </div>
@@ -465,7 +465,7 @@ export default function Site() {
             {processSteps.map((s) => (
               <div key={s.n}>
                 <div style={{ ...mono, fontSize: 12, letterSpacing: 1.5, color: '#85829B', marginBottom: 14 }}>TC {s.tc}:00</div>
-                <h4 style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 24, textTransform: 'uppercase', margin: '0 0 12px' }}>
+                <h4 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 24, textTransform: 'uppercase', margin: '0 0 12px' }}>
                   {s.n} — {s.t}
                 </h4>
                 <p style={{ fontSize: 14.5, lineHeight: 1.6, color: '#B4B1C9', margin: 0 }}>{s.d}</p>
@@ -479,7 +479,7 @@ export default function Site() {
       <section style={{ borderTop: '1px solid var(--sline-16)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '110px 40px', textAlign: 'center' }}>
           <div className="site-kicker" style={{ marginBottom: 34 }}>( 06 — What clients say )</div>
-          <p style={{ fontFamily: "'Space Grotesk'", fontWeight: 600, fontSize: 40, lineHeight: 1.25, letterSpacing: -1, margin: '0 0 36px' }}>
+          <p style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 40, lineHeight: 1.25, letterSpacing: -1, margin: '0 0 36px' }}>
             “The team transformed our idea into an incredible commercial. The production quality was{' '}
             <span style={{ background: 'linear-gradient(100deg,#E86FA6,#8354C9 45%,#2B39B8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>outstanding</span>.”
           </p>
@@ -527,7 +527,7 @@ export default function Site() {
       {/* CTA */}
       <section style={{ borderTop: '1px solid var(--sline-16)', padding: '80px 40px' }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', background: 'linear-gradient(115deg,#E86FA6,#8354C9 45%,#2B39B8)', clipPath: 'polygon(0 6%, 100% 0, 100% 94%, 0 100%)', padding: '110px 60px', textAlign: 'center', color: '#fff' }}>
-          <h2 style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 64, letterSpacing: -2, textTransform: 'uppercase', lineHeight: 0.98, margin: '0 0 20px' }}>Let's create something amazing</h2>
+          <h2 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 64, letterSpacing: -2, textTransform: 'uppercase', lineHeight: 0.98, margin: '0 0 20px' }}>Let's create something amazing</h2>
           <p style={{ fontSize: 18, margin: '0 0 40px', opacity: 0.92 }}>Have a project in mind? Let's bring your vision to life.</p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={scrollToContact} className="clip-btn-lg" style={{ padding: '17px 30px', background: 'var(--sink)', border: 'none', color: 'var(--sbg)', ...mono, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase' }}>
@@ -613,7 +613,7 @@ export default function Site() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
             <KLogo gradient size={24} />
             <div style={{ lineHeight: 1 }}>
-              <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 16 }}>kml</div>
+              <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 16 }}>kml</div>
               <div style={{ fontSize: 8, letterSpacing: 3, color: 'var(--smuted)', textTransform: 'uppercase' }}>Production</div>
             </div>
           </div>
@@ -646,7 +646,7 @@ export default function Site() {
             <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 14, color: '#F7F6FB' }}>
               <div>
                 <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: '#C9A8FF', marginBottom: 8 }}>● Now playing</div>
-                <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 30, letterSpacing: -1, textTransform: 'uppercase', lineHeight: 1 }}>{activeVideo.title}</div>
+                <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 30, letterSpacing: -1, textTransform: 'uppercase', lineHeight: 1 }}>{activeVideo.title}</div>
                 <div style={{ ...mono, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', color: '#B4B1C9', marginTop: 6 }}>
                   {activeVideo.client ?? '—'} — {activeVideo.duration ?? '—'}
                 </div>

@@ -83,7 +83,7 @@ export default function Layout() {
         >
           <KLogo gradient size={26} />
           <div style={{ lineHeight: 1 }}>
-            <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 17 }}>kml</div>
+            <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 17 }}>kml</div>
             <div style={{ fontSize: 8, letterSpacing: 3, color: 'var(--ink-2)', textTransform: 'uppercase' }}>Admin</div>
           </div>
         </a>
@@ -150,7 +150,7 @@ export default function Layout() {
               border: '1px solid rgba(23,21,58,.16)',
               borderRadius: 8,
               color: 'var(--ink-2)',
-              fontFamily: "'Space Mono', monospace",
+              fontFamily: 'var(--ui-font)',
               fontSize: 11.5,
               letterSpacing: 1,
               textTransform: 'uppercase',

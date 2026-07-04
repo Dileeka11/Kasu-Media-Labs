@@ -33,7 +33,7 @@ export default function Dashboard() {
         {stats.map((s) => (
           <div key={s.label} className="k-card" style={{ padding: 22 }}>
             <div className="k-mono" style={{ marginBottom: 14 }}>{s.label}</div>
-            <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 36, lineHeight: 1, letterSpacing: -1, marginBottom: 10 }}>
+            <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 36, lineHeight: 1, letterSpacing: -1, marginBottom: 10 }}>
               {s.value}
             </div>
             <div style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>{s.delta}</div>
@@ -46,7 +46,7 @@ export default function Dashboard() {
             <h3 className="k-h" style={{ fontWeight: 600, fontSize: 17 }}>Views — last 30 days</h3>
             <span
               style={{
-                fontFamily: "'Space Mono', monospace",
+                fontFamily: 'var(--ui-font)',
                 fontSize: 12,
                 color: data.views_delta >= 0 ? 'var(--green)' : 'var(--red)',
                 fontWeight: 700,
