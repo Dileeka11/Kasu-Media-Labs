@@ -59,7 +59,7 @@ class SettingController extends Controller
 
             // Clients
             'clients' => ['sometimes', 'nullable', 'array', 'max:40'],
-            'clients.*.name' => ['required', 'string', 'max:80'],
+            'clients.*.name' => ['nullable', 'string', 'max:80'],
             'clients.*.logo' => ['nullable', 'string', 'max:500'],
 
             // Testimonials

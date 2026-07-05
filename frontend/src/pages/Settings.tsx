@@ -111,7 +111,10 @@ export default function Settings() {
         onUploadProgress: (e) =>
           setClientPct((p) => ({ ...p, [index]: e.total ? (e.loaded / e.total) * 100 : (p[index] ?? 0) })),
       });
-      setLocal({ clients: list.map((x, j) => (j === index ? { ...x, logo: res.data.url } : x)) });
+      // Persist immediately so the logo sticks on reload — the upload endpoint
+      // only stores the file, the URL still has to be saved onto the client row.
+      const next = list.map((x, j) => (j === index ? { ...x, logo: res.data.url } : x));
+      await save({ clients: next });
     } catch (err) {
       setError(errorMessage(err));
     } finally {
