@@ -23,6 +23,7 @@
 * { box-sizing: border-box; }
 
 html, body, #root { min-height: 100vh; }
+html, body { overflow-x: hidden; max-width: 100%; }
 
 body {
   margin: 0;
@@ -606,3 +607,40 @@ select.k-input { appearance: none; cursor: pointer; }
   border-radius: 50%;
   background: #fff;
 }
+
+/* ================================================================
+   RESPONSIVE — tablet
+   ================================================================ */
+@media (max-width: 1024px) {
+  .site-h2 { font-size: 40px; letter-spacing: -1px; }
+  .site-nav { padding: 0 24px; }
+}
+
+/* ================================================================
+   RESPONSIVE — mobile
+   ================================================================ */
+@media (max-width: 768px) {
+  body { font-size: 14px; }
+
+  .site-h2 { font-size: 30px; letter-spacing: -0.6px; }
+  .site-nav { padding: 0 18px; height: 64px; }
+
+  /* Horizontal scroll container for wide admin tables. */
+  .k-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Mobile drawer scrim + panel for the admin sidebar. */
+  .k-drawer-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(23, 21, 58, 0.42);
+    backdrop-filter: blur(2px);
+  }
+}
+
+/* Slide-in animation for the mobile sidebar drawer. */
+@keyframes kdrawerin {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+

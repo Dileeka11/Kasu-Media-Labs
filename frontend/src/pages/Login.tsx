@@ -3,8 +3,10 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { errorMessage } from '../api';
 import { KLogo, ErrorBox } from '../components/ui';
+import { useIsMobile } from '../useMediaQuery';
 
 export default function Login() {
+  const isMobile = useIsMobile();
   const { user, login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,7 +37,7 @@ export default function Login() {
         minHeight: '100vh',
         display: 'grid',
         placeItems: 'center',
-        padding: 32,
+        padding: isMobile ? 16 : 32,
         background:
           'radial-gradient(1200px 600px at 15% 10%,rgba(131,84,201,.16),transparent 60%),radial-gradient(900px 500px at 90% 90%,rgba(43,57,184,.14),transparent 55%),#F5F4FA',
       }}
@@ -44,7 +46,7 @@ export default function Login() {
         style={{
           width: 'min(940px,100%)',
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
           background: '#fff',
           border: '1px solid var(--border)',
           borderRadius: 6,
@@ -56,14 +58,15 @@ export default function Login() {
         <div
           style={{
             position: 'relative',
-            padding: '48px 40px',
+            padding: isMobile ? '32px 26px' : '48px 40px',
             background: 'var(--grad-steep)',
             color: '#fff',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            minHeight: 520,
+            gap: isMobile ? 24 : 0,
+            minHeight: isMobile ? 0 : 520,
           }}
         >
           <div
@@ -89,7 +92,7 @@ export default function Login() {
             <div className="k-mono" style={{ fontSize: 11.5, letterSpacing: 2, color: '#fff', opacity: 0.85, marginBottom: 18 }}>
               Content Management
             </div>
-            <h1 className="k-h" style={{ fontSize: 38, lineHeight: 1.02, letterSpacing: -1.4 }}>Manage every frame of your studio.</h1>
+            <h1 className="k-h" style={{ fontSize: isMobile ? 28 : 38, lineHeight: 1.02, letterSpacing: -1.4 }}>Manage every frame of your studio.</h1>
             <p style={{ fontSize: 15, lineHeight: 1.6, opacity: 0.9, margin: '20px 0 0', maxWidth: 320 }}>
               Upload projects, films and virtual tours, respond to inquiries, and publish to the live site.
             </p>
@@ -100,7 +103,7 @@ export default function Login() {
         </div>
 
         {/* form panel */}
-        <div style={{ padding: '48px 44px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ padding: isMobile ? '32px 24px' : '48px 44px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <h2 className="k-h" style={{ fontSize: 26, letterSpacing: -0.6, marginBottom: 6 }}>Sign in</h2>
           <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 30px' }}>Welcome back. Enter your credentials to continue.</p>
 

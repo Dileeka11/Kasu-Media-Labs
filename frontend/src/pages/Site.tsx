@@ -4,6 +4,7 @@ import axios from 'axios';
 import type { Category, Project, Socials, Stat, ClientItem, Testimonial } from '../types';
 import { KLogoImg } from '../components/ui';
 import { applyFont } from '../font';
+import { useIsMobile, useIsTablet } from '../useMediaQuery';
 
 const API = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api') as string;
 
@@ -169,6 +170,9 @@ function Counter({ value }: { value: string }) {
 }
 
 export default function Site() {
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('kml_theme') === 'dark' ? 'dark' : 'light'));
   const [scrolled, setScrolled] = useState(false);
   const [data, setData] = useState<SiteData | null>(null);
@@ -317,6 +321,11 @@ export default function Site() {
   const mono: CSSProperties = { fontFamily: 'var(--ui-font)' };
   const embed = activeVideo ? embedUrl(activeVideo.video_url) : null;
 
+  // Responsive helpers — collapse multi-column layouts and shrink section
+  // padding on small screens. `secPad` is the standard section padding.
+  const secPad = isMobile ? '64px 20px' : '96px 40px';
+  const stack = (desktop: string) => (isMobile ? '1fr' : desktop);
+
   // 3D pointer tilt for feature cards.
   const onTilt = (e: ReactMouseEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
@@ -353,30 +362,90 @@ export default function Site() {
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <KLogoImg gradient size={46} src={data?.logo_url} />
         </div>
-        <div style={{ display: 'flex', gap: 30, ...mono, fontSize: 12.5, letterSpacing: 1, textTransform: 'uppercase' }}>
+        <div style={{ display: isMobile ? 'none' : 'flex', gap: 30, ...mono, fontSize: 12.5, letterSpacing: 1, textTransform: 'uppercase' }}>
           {navLinks.map(([label, href]) => (
             <a key={label} href={href} style={{ color: 'var(--navfg)', textDecoration: 'none' }}>
               {label}
             </a>
           ))}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: isMobile ? 10 : 14 }}>
           <button
             onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
             title="Toggle theme"
-            style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid var(--navfg)', background: 'transparent', fontSize: 16, color: 'var(--navfg)', display: 'grid', placeItems: 'center' }}
+            style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid var(--navfg)', background: 'transparent', fontSize: 16, color: 'var(--navfg)', display: 'grid', placeItems: 'center', flex: 'none' }}
           >
             {theme === 'dark' ? '☀' : '☾'}
           </button>
+          {isMobile ? (
+            <button
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open menu"
+              style={{ width: 42, height: 42, borderRadius: 8, border: '1px solid var(--navfg)', background: 'transparent', fontSize: 20, color: 'var(--navfg)', display: 'grid', placeItems: 'center', flex: 'none' }}
+            >
+              ☰
+            </button>
+          ) : (
+            <button
+              onClick={scrollToContact}
+              className="clip-btn"
+              style={{ padding: '12px 22px', background: grad, border: 'none', color: '#fff', ...mono, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase' }}
+            >
+              Start a Project
+            </button>
+          )}
+        </div>
+      </nav>
+
+      {/* MOBILE MENU OVERLAY */}
+      {menuOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9000,
+            background: 'rgba(8,6,14,.96)',
+            backdropFilter: 'blur(10px)',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '22px 24px',
+            color: '#F7F6FB',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <KLogoImg gradient size={44} src={data?.logo_url} />
+            <button
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
+              style={{ width: 44, height: 44, borderRadius: 8, border: '1px solid rgba(255,255,255,.3)', background: 'transparent', fontSize: 20, color: '#fff', display: 'grid', placeItems: 'center' }}
+            >
+              ✕
+            </button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 40, flex: 1 }}>
+            {navLinks.map(([label, href]) => (
+              <a
+                key={label}
+                href={href}
+                onClick={() => setMenuOpen(false)}
+                style={{ ...mono, fontSize: 26, fontWeight: 700, letterSpacing: -0.5, textTransform: 'uppercase', color: '#F7F6FB', textDecoration: 'none', padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,.1)' }}
+              >
+                {label}
+              </a>
+            ))}
+          </div>
           <button
-            onClick={scrollToContact}
-            className="clip-btn"
-            style={{ padding: '12px 22px', background: grad, border: 'none', color: '#fff', ...mono, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase' }}
+            onClick={() => {
+              setMenuOpen(false);
+              scrollToContact();
+            }}
+            className="clip-btn-lg"
+            style={{ padding: '17px 26px', background: grad, border: 'none', color: '#fff', ...mono, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase' }}
           >
             Start a Project
           </button>
         </div>
-      </nav>
+      )}
 
       {/* HERO */}
       <section style={{ position: 'relative', height: '100vh', minHeight: 640, marginTop: -76, overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
@@ -435,12 +504,12 @@ export default function Site() {
           }}
         />
 
-        <div style={{ position: 'relative', zIndex: 3, width: '100%', maxWidth: 1360, margin: '0 auto', padding: '76px 40px 0', color: '#F7F6FB' }}>
+        <div style={{ position: 'relative', zIndex: 3, width: '100%', maxWidth: 1360, margin: '0 auto', padding: isMobile ? '76px 20px 0' : '76px 40px 0', color: '#F7F6FB' }}>
           <div className="hero-in hero-in-1" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 15px', border: '1px solid rgba(255,255,255,.24)', borderRadius: 100, ...mono, fontSize: 11.5, letterSpacing: 2, textTransform: 'uppercase', color: '#EDEBF6', marginBottom: 30 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#E86FA6', boxShadow: '0 0 12px #E86FA6', animation: 'kmlbob 2.4s ease-in-out infinite' }} />
             {heroKicker}
           </div>
-          <h1 className="hero-in hero-in-2" style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: -3, lineHeight: 0.9, margin: 0, fontSize: 'clamp(56px,8.4vw,116px)', maxWidth: '14ch', textShadow: hasHeroVideo ? '0 2px 30px rgba(6,5,12,.6)' : undefined }}>
+          <h1 className="hero-in hero-in-2" style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: isMobile ? -1.5 : -3, lineHeight: 0.92, margin: 0, fontSize: 'clamp(38px,8.4vw,116px)', maxWidth: '14ch', textShadow: hasHeroVideo ? '0 2px 30px rgba(6,5,12,.6)' : undefined }}>
             {heroHead && <>{heroHead} </>}
             <span className="grad-text-anim" style={{ background: 'linear-gradient(100deg,#F49AC1,#B48BEB 35%,#7C89FF 65%,#F49AC1)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', filter: hasHeroVideo ? 'drop-shadow(0 2px 18px rgba(6,5,12,.55))' : undefined }}>{heroTail}</span>
           </h1>
@@ -467,7 +536,7 @@ export default function Site() {
           </div>
         </div>
 
-        <div style={{ position: 'absolute', zIndex: 3, left: 40, right: 40, bottom: 30, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, color: '#CFCDE0', ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', zIndex: 3, left: 40, right: 40, bottom: 30, display: isMobile ? 'none' : 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, color: '#CFCDE0', ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', pointerEvents: 'none' }}>
           <span>● REC — SHOWREEL 2026 · 4K / 24FPS</span>
           <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
             Scroll
@@ -492,7 +561,7 @@ export default function Site() {
       </div>
 
       {/* CLIENTS */}
-      <section style={{ maxWidth: 1360, margin: '0 auto', padding: '56px 40px 60px' }}>
+      <section style={{ maxWidth: 1360, margin: '0 auto', padding: isMobile ? '48px 20px' : '56px 40px 60px' }}>
         <div className="reveal" style={{ textAlign: 'center', marginBottom: 30 }}>
           <div className="site-kicker" style={{ marginBottom: 12 }}>( Trusted by brands &amp; creators )</div>
           <h2 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 30, letterSpacing: -1, margin: 0 }}>Trusted by brands &amp; creators</h2>
@@ -524,7 +593,7 @@ export default function Site() {
 
       {/* ABOUT */}
       <section id="about" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: 76 }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto', padding: '96px 40px', display: 'grid', gridTemplateColumns: '.9fr 1.4fr', gap: 70 }}>
+        <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad, display: 'grid', gridTemplateColumns: stack('.9fr 1.4fr'), gap: isMobile ? 40 : 70 }}>
           <div className="reveal reveal-l">
             <div className="site-kicker" style={{ marginBottom: 26 }}>( About the studio )</div>
             <Placeholder label="Behind-the-scenes / crew on set" style={{ width: '100%', height: 420, clipPath: 'polygon(0 2%, 100% 0, 98% 98%, 3% 100%)' }} />
@@ -549,7 +618,7 @@ export default function Site() {
                 </div>
               ))}
             </div>
-            <div style={{ display: 'flex', gap: 56, marginTop: 44 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? 28 : 56, marginTop: 44 }}>
               {statList.map((st) => (
                 <div key={st.label}>
                   <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 46, lineHeight: 1, letterSpacing: -1 }}><Counter value={st.value} /></div>
@@ -565,13 +634,13 @@ export default function Site() {
       <section style={{ position: 'relative', borderTop: '1px solid var(--sline-16)', background: '#0C0A16', color: '#F7F6FB', overflow: 'hidden' }}>
         <div className="kml-blob" style={{ top: '-8%', right: '-4%', width: 400, height: 400, background: 'rgba(232,111,166,.35)' }} />
         <div className="kml-blob" style={{ bottom: '-10%', left: '-4%', width: 420, height: 420, background: 'rgba(43,57,184,.42)', animationDelay: '-7s' }} />
-        <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: '96px 40px' }}>
+        <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 16, marginBottom: 60 }}>
             <div className="site-kicker" style={{ color: '#C9A8FF' }}>( Why we exist )</div>
             <h2 className="site-h2">Vision, mission &amp; objectives</h2>
           </div>
 
-          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: stack('1fr 1fr'), gap: 20, marginBottom: 20 }}>
             <div style={{ padding: '40px 42px', border: '1px solid rgba(247,246,251,.14)', background: 'rgba(247,246,251,.03)', clipPath: 'polygon(0 3%, 100% 0, 98% 100%, 2% 97%)' }}>
               <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: '#E86FA6', marginBottom: 18 }}>◎ Vision</div>
               <p style={{ fontSize: 20, lineHeight: 1.55, color: '#E7E5F2', margin: 0, fontWeight: 500 }}>
@@ -586,7 +655,7 @@ export default function Site() {
             </div>
           </div>
 
-          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)' }}>
+          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: stack('repeat(3,1fr)') }}>
             {objectives.map((o) => (
               <div key={o.n} style={{ borderTop: '1px solid rgba(247,246,251,.14)', borderLeft: '1px solid rgba(247,246,251,.14)', padding: '30px 30px 34px' }}>
                 <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 40, lineHeight: 1, letterSpacing: -1, background: 'linear-gradient(120deg,#E86FA6,#8354C9 55%,#2B39B8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', marginBottom: 16 }}>
@@ -602,12 +671,12 @@ export default function Site() {
 
       {/* SERVICES */}
       <section id="services" style={{ borderTop: '1px solid var(--sline-16)', background: 'var(--ssurface)', scrollMarginTop: 76 }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto', padding: '96px 40px' }}>
+        <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 60, flexWrap: 'wrap', gap: 16 }}>
             <div className="site-kicker">( What we do )</div>
             <h2 className="site-h2">End-to-end production</h2>
           </div>
-          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)' }}>
+          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: stack('repeat(3,1fr)') }}>
             {services.map((s) => (
               <div key={s.phase} style={{ borderLeft: '1px solid var(--sline-16)', padding: '6px 34px 10px' }}>
                 <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 70, lineHeight: 1, letterSpacing: -2, background: 'linear-gradient(120deg,#E86FA6,#8354C9 55%,#2B39B8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', marginBottom: 16 }}>
@@ -629,7 +698,7 @@ export default function Site() {
 
       {/* WORK INDEX */}
       <section id="work" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: 76 }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto', padding: '96px 40px' }}>
+        <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 18, marginBottom: 20 }}>
             <div>
               <div className="site-kicker" style={{ marginBottom: 14 }}>( Selected work )</div>
@@ -666,7 +735,11 @@ export default function Site() {
                 key={p.id}
                 className="work-row"
                 onClick={() => openVideo(p)}
-                style={{ display: 'grid', gridTemplateColumns: '80px 1fr 210px 190px', gap: 30, alignItems: 'center', padding: '26px 0', cursor: 'pointer' }}
+                style={
+                  isMobile
+                    ? { display: 'flex', flexDirection: 'column', gap: 10, padding: '20px 0', cursor: 'pointer' }
+                    : { display: 'grid', gridTemplateColumns: '80px 1fr 210px 190px', gap: 30, alignItems: 'center', padding: '26px 0', cursor: 'pointer' }
+                }
               >
                 <div style={{ ...mono, fontSize: 14, color: 'var(--sfaint)' }}>{String(i + 1).padStart(2, '0')}</div>
                 <div>
@@ -692,7 +765,7 @@ export default function Site() {
       <section style={{ position: 'relative', borderTop: '1px solid var(--sline-16)', background: '#0C0A16', color: '#F7F6FB', overflow: 'hidden' }}>
         <div className="kml-blob" style={{ top: '-6%', left: '-4%', width: 380, height: 380, background: 'rgba(131,84,201,.5)' }} />
         <div className="kml-blob" style={{ bottom: '-8%', right: '-2%', width: 420, height: 420, background: 'rgba(43,57,184,.45)', animationDelay: '-6s' }} />
-        <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: '96px 40px' }}>
+        <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 16, marginBottom: 44 }}>
             <div className="site-kicker" style={{ color: '#C9A8FF' }}>( Films &amp; animations )</div>
             <h2 className="site-h2">Motion that sells the space</h2>
@@ -700,17 +773,17 @@ export default function Site() {
 
           {featured && (
             <div className="reveal reveal-scale" style={{ marginBottom: 20 }}>
-            <div className="tilt" onMouseMove={onTilt} onMouseLeave={resetTilt} onClick={() => openVideo(featured)} style={{ position: 'relative', borderRadius: 4, overflow: 'hidden', cursor: 'pointer', aspectRatio: '21/9' }}>
+            <div className="tilt" onMouseMove={onTilt} onMouseLeave={resetTilt} onClick={() => openVideo(featured)} style={{ position: 'relative', borderRadius: 4, overflow: 'hidden', cursor: 'pointer', aspectRatio: isMobile ? '4/3' : '21/9' }}>
               {featured.thumbnail_url ? (
                 <div className="film-bg" style={{ position: 'absolute', inset: 0, background: `url(${featured.thumbnail_url}) center/cover no-repeat` }} />
               ) : (
                 <div className="film-bg" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(1000px 500px at 40% 50%,rgba(131,84,201,.5),transparent 65%),#141021' }} />
               )}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,rgba(12,10,22,.85),rgba(12,10,22,.15) 60%,rgba(12,10,22,.55))', pointerEvents: 'none' }} />
-              <div style={{ position: 'absolute', left: 44, bottom: 40, right: 44, pointerEvents: 'none', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+              <div style={{ position: 'absolute', left: isMobile ? 20 : 44, bottom: isMobile ? 22 : 40, right: isMobile ? 20 : 44, pointerEvents: 'none', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
                 <div>
                   <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: '#C9A8FF', marginBottom: 12 }}>● Now playing — Featured</div>
-                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 44, letterSpacing: -1.4, textTransform: 'uppercase', lineHeight: 1 }}>{featured.title}</div>
+                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: isMobile ? 26 : 44, letterSpacing: -1.4, textTransform: 'uppercase', lineHeight: 1 }}>{featured.title}</div>
                   <div style={{ ...mono, fontSize: 12.5, letterSpacing: 1, textTransform: 'uppercase', color: '#B4B1C9', marginTop: 8 }}>
                     {featured.client ?? '—'} — {featured.duration ?? '—'}
                   </div>
@@ -723,7 +796,7 @@ export default function Site() {
             </div>
           )}
 
-          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: stack('repeat(3,1fr)'), gap: 20 }}>
             {gridFilms.map((v) => (
               <div key={v.id} className="film-card" onClick={() => openVideo(v)} style={{ position: 'relative', borderRadius: 4, overflow: 'hidden', cursor: 'pointer', aspectRatio: '16/9' }}>
                 {v.thumbnail_url ? (
@@ -752,7 +825,7 @@ export default function Site() {
       <section id="process" style={{ position: 'relative', borderTop: '1px solid var(--sline-16)', background: '#17153A', color: '#F7F6FB', scrollMarginTop: 76, overflow: 'hidden' }}>
         <div className="kml-blob" style={{ top: '10%', right: '-5%', width: 360, height: 360, background: 'rgba(232,111,166,.35)' }} />
         <div className="kml-blob" style={{ bottom: '-10%', left: '-4%', width: 400, height: 400, background: 'rgba(131,84,201,.4)', animationDelay: '-8s' }} />
-        <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: '96px 40px' }}>
+        <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 70, flexWrap: 'wrap', gap: 16 }}>
             <div className="site-kicker" style={{ color: '#E86FA6' }}>( How we work )</div>
             <h2 className="site-h2">Our production process</h2>
@@ -760,7 +833,7 @@ export default function Site() {
           <div className="reveal" style={{ position: 'relative', height: 4, background: 'rgba(247,246,251,.14)', marginBottom: 40 }}>
             <div className="proc-bar-fill" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, background: 'linear-gradient(90deg,#E86FA6,#8354C9,#2B39B8)' }} />
           </div>
-          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 26 }}>
+          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : isTablet ? 'repeat(3,1fr)' : 'repeat(5,1fr)', gap: 26 }}>
             {processSteps.map((s) => (
               <div key={s.n}>
                 <div style={{ ...mono, fontSize: 12, letterSpacing: 1.5, color: '#85829B', marginBottom: 14 }}>TC {s.tc}:00</div>
@@ -776,13 +849,13 @@ export default function Site() {
 
       {/* TESTIMONIAL */}
       <section style={{ borderTop: '1px solid var(--sline-16)' }}>
-        <div className="reveal" style={{ maxWidth: 1100, margin: '0 auto', padding: '110px 40px', textAlign: 'center' }}>
+        <div className="reveal" style={{ maxWidth: 1100, margin: '0 auto', padding: isMobile ? '72px 20px' : '110px 40px', textAlign: 'center' }}>
           <div className="site-kicker" style={{ marginBottom: 34 }}>( What clients say )</div>
-          <p style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 40, lineHeight: 1.25, letterSpacing: -1, margin: '0 0 36px' }}>
+          <p style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 'clamp(24px,4vw,40px)', lineHeight: 1.25, letterSpacing: -1, margin: '0 0 36px' }}>
             “{lead.q}”
           </p>
           <div style={{ ...mono, fontSize: 12.5, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--smuted)' }}>{lead.a}{lead.r ? ` — ${lead.r}` : ''}</div>
-          <div className="reveal-stagger" style={{ display: 'flex', justifyContent: 'center', gap: 40, marginTop: 60, paddingTop: 44, borderTop: '1px solid var(--sline-12)' }}>
+          <div className="reveal-stagger" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'center' : 'flex-start', justifyContent: 'center', gap: 40, marginTop: 60, paddingTop: 44, borderTop: '1px solid var(--sline-12)' }}>
             {quoteList.map((t, i) => (
               <div key={i} className="quote-card" style={{ maxWidth: 280, textAlign: 'left' }}>
                 <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--smuted)', margin: '0 0 12px' }}>“{t.q}”</p>
@@ -797,10 +870,10 @@ export default function Site() {
 
       {/* GEAR */}
       <section style={{ borderTop: '1px solid var(--sline-16)', background: 'var(--ssurface)' }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto', padding: '96px 40px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 70, alignItems: 'center' }}>
+        <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad, display: 'grid', gridTemplateColumns: stack('1.2fr 1fr'), gap: isMobile ? 40 : 70, alignItems: 'center' }}>
           <div className="reveal reveal-l">
             <div className="site-kicker" style={{ marginBottom: 20 }}>( The gear )</div>
-            <h2 className="site-h2" style={{ fontSize: 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 22px' }}>Professional gear. Professional results.</h2>
+            <h2 className="site-h2" style={{ fontSize: isMobile ? 30 : 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 22px' }}>Professional gear. Professional results.</h2>
             <p style={{ fontSize: 17, lineHeight: 1.7, color: 'var(--smuted)', margin: '0 0 36px', maxWidth: 520 }}>
               We shoot on cinema-grade equipment and light every frame with intent — so your story looks as premium as your brand.
             </p>
@@ -823,9 +896,9 @@ export default function Site() {
       </section>
 
       {/* CTA */}
-      <section style={{ borderTop: '1px solid var(--sline-16)', padding: '80px 40px' }}>
-        <div className="reveal reveal-scale cta-grad" style={{ maxWidth: 1360, margin: '0 auto', background: 'linear-gradient(115deg,#E86FA6,#8354C9 45%,#2B39B8)', clipPath: 'polygon(0 6%, 100% 0, 100% 94%, 0 100%)', padding: '110px 60px', textAlign: 'center', color: '#fff' }}>
-          <h2 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 64, letterSpacing: -2, textTransform: 'uppercase', lineHeight: 0.98, margin: '0 0 20px' }}>Let's create something amazing</h2>
+      <section style={{ borderTop: '1px solid var(--sline-16)', padding: isMobile ? '48px 20px' : '80px 40px' }}>
+        <div className="reveal reveal-scale cta-grad" style={{ maxWidth: 1360, margin: '0 auto', background: 'linear-gradient(115deg,#E86FA6,#8354C9 45%,#2B39B8)', clipPath: 'polygon(0 6%, 100% 0, 100% 94%, 0 100%)', padding: isMobile ? '64px 24px' : '110px 60px', textAlign: 'center', color: '#fff' }}>
+          <h2 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 'clamp(32px,6vw,64px)', letterSpacing: -2, textTransform: 'uppercase', lineHeight: 0.98, margin: '0 0 20px' }}>Let's create something amazing</h2>
           <p style={{ fontSize: 18, margin: '0 0 40px', opacity: 0.92 }}>Have a project in mind? Let's bring your vision to life.</p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={scrollToContact} className="clip-btn-lg" style={{ padding: '17px 30px', background: 'var(--sink)', border: 'none', color: 'var(--sbg)', ...mono, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase' }}>
@@ -840,10 +913,10 @@ export default function Site() {
 
       {/* CONTACT */}
       <section id="contact" ref={contactRef} style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: 76 }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto', padding: '96px 40px', display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: 80 }}>
+        <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad, display: 'grid', gridTemplateColumns: stack('1fr 1.3fr'), gap: isMobile ? 44 : 80 }}>
           <div className="reveal reveal-l">
             <div className="site-kicker" style={{ marginBottom: 20 }}>( Get in touch )</div>
-            <h2 className="site-h2" style={{ fontSize: 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 40px' }}>Start the conversation</h2>
+            <h2 className="site-h2" style={{ fontSize: isMobile ? 30 : 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 40px' }}>Start the conversation</h2>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {[
                 ['Phone', phone],
@@ -871,7 +944,7 @@ export default function Site() {
             </div>
           </div>
           <form className="reveal reveal-r" style={{ transitionDelay: '0.12s' }} onSubmit={(e) => void submit(e)}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '26px 30px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: stack('1fr 1fr'), gap: '26px 30px' }}>
               <div>
                 <label className="k-label" style={{ marginBottom: 10, color: 'var(--sfaint)' }}>Name</label>
                 <input className="site-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Your name" required />
@@ -913,7 +986,7 @@ export default function Site() {
 
       {/* FOOTER */}
       <footer style={{ borderTop: '1px solid var(--sline-2)', background: 'var(--ssurface)' }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto', padding: '44px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 22 }}>
+        <div style={{ maxWidth: 1360, margin: '0 auto', padding: isMobile ? '32px 20px' : '44px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 22 }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <KLogoImg gradient size={38} src={data?.logo_url} />
           </div>
@@ -941,7 +1014,7 @@ export default function Site() {
 
       {/* VIDEO LIGHTBOX */}
       {activeVideo && (
-        <div onClick={() => setActiveVideo(null)} style={{ position: 'fixed', inset: 0, zIndex: 9600, background: 'rgba(6,5,12,.9)', backdropFilter: 'blur(10px)', display: 'grid', placeItems: 'center', padding: 40 }}>
+        <div onClick={() => setActiveVideo(null)} style={{ position: 'fixed', inset: 0, zIndex: 9600, background: 'rgba(6,5,12,.9)', backdropFilter: 'blur(10px)', display: 'grid', placeItems: 'center', padding: isMobile ? 16 : 40 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ width: 'min(1100px,100%)', maxHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 14, color: '#F7F6FB', flex: '0 0 auto' }}>
               <div>

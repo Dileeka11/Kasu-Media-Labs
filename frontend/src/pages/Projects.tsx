@@ -45,7 +45,8 @@ export default function Projects() {
   };
 
   return (
-    <div className="k-card" style={{ overflow: 'hidden' }}>
+    <div className="k-table-scroll">
+    <div className="k-card" style={{ overflow: 'hidden', minWidth: 680 }}>
       <div
         className="k-mono"
         style={{ display: 'grid', gridTemplateColumns: cols, gap: 16, padding: '14px 22px', borderBottom: '1px solid var(--border)' }}
@@ -135,6 +136,7 @@ export default function Projects() {
           </p>
         </Modal>
       )}
+    </div>
     </div>
   );
 }

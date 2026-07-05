@@ -3,6 +3,7 @@ import { api, errorMessage } from '../api';
 import type { Settings as SettingsData, Stat, ClientItem, Testimonial } from '../types';
 import { Toggle, ErrorBox, ProgressBar } from '../components/ui';
 import { FONT_OPTIONS, applyFont, fontStack } from '../font';
+import { useIsMobile } from '../useMediaQuery';
 
 const prefMeta: { key: keyof Pick<SettingsData, 'email_on_inquiries' | 'auto_publish' | 'show_drafts'>; t: string; d: string }[] = [
   { key: 'email_on_inquiries', t: 'Email me on new inquiries', d: 'Get notified the moment a lead comes in' },
@@ -21,6 +22,7 @@ const cardStyle = { padding: 26 } as const;
 const h3Style = { fontWeight: 600, fontSize: 17, margin: '0 0 6px' } as const;
 
 export default function Settings() {
+  const isMobile = useIsMobile();
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
@@ -360,7 +362,7 @@ export default function Settings() {
               <button className="k-btn-outline" onClick={() => setLocal({ testimonials: testimonials.filter((_, j) => j !== i) })} style={{ position: 'absolute', top: 10, right: 10, color: 'var(--red)', padding: '0 10px' }}>✕</button>
               <label className="k-label">Quote</label>
               <textarea className="k-input" value={t.quote} onChange={(e) => setLocal({ testimonials: testimonials.map((x, j) => (j === i ? { ...x, quote: e.target.value } : x)) })} style={{ height: 64, resize: 'vertical', marginBottom: 12 }} />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
                 <div>
                   <label className="k-label">Author</label>
                   <input className="k-input" value={t.author} onChange={(e) => setLocal({ testimonials: testimonials.map((x, j) => (j === i ? { ...x, author: e.target.value } : x)) })} />

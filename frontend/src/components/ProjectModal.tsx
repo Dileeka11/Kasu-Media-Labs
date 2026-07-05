@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { api, errorMessage } from '../api';
 import type { Category, Project } from '../types';
 import { Modal, ErrorBox, ProgressBar } from './ui';
+import { useIsMobile } from '../useMediaQuery';
 
 export function ProjectModal({ project, onClose, onSaved }: { project: Project | null; onClose: () => void; onSaved: () => void }) {
+  const isMobile = useIsMobile();
   const [categories, setCategories] = useState<Category[]>([]);
   const [title, setTitle] = useState(project?.title ?? '');
   const [categoryId, setCategoryId] = useState(project ? String(project.category_id) : '');
@@ -116,7 +118,7 @@ export function ProjectModal({ project, onClose, onSaved }: { project: Project |
         <label className="k-label">Title</label>
         <input className="k-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Aether — Brand Film" />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
         <div>
           <label className="k-label">Category</label>
           <select className="k-input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
@@ -136,7 +138,7 @@ export function ProjectModal({ project, onClose, onSaved }: { project: Project |
         <label className="k-label">Video URL</label>
         <input className="k-input" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://vimeo.com/…" />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
         <div>
           <label className="k-label">Duration</label>
           <input className="k-input" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="e.g. 2:14" />

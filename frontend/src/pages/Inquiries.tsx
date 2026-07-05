@@ -4,8 +4,10 @@ import { api } from '../api';
 import type { Inquiry } from '../types';
 import type { LayoutCtx } from '../components/Layout';
 import { initials, relTimeShort } from '../components/ui';
+import { useIsMobile } from '../useMediaQuery';
 
 export default function Inquiries() {
+  const isMobile = useIsMobile();
   const { search, refreshBadge } = useOutletContext<LayoutCtx>();
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
@@ -36,7 +38,7 @@ export default function Inquiries() {
         <div style={{ padding: '40px 22px', textAlign: 'center', color: 'var(--ink-3)', fontSize: 13.5 }}>No inquiries found.</div>
       )}
       {filtered.map((q) => (
-        <div key={q.id} className="k-card" style={{ padding: '20px 22px', display: 'flex', gap: 16, alignItems: 'center' }}>
+        <div key={q.id} className="k-card" style={{ padding: '20px 22px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
           <div
             style={{
               width: 44,
@@ -63,7 +65,7 @@ export default function Inquiries() {
               {q.message}
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20, flex: 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20, flex: 'none', width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{q.type}</div>
               <div style={{ fontFamily: 'var(--ui-font)', fontSize: 11.5, color: 'var(--ink-3)' }}>{q.budget}</div>

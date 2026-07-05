@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { api } from '../api';
 import type { DashboardData } from '../types';
 import { fmtViews, relTimeShort } from '../components/ui';
+import { useIsMobile } from '../useMediaQuery';
 
 export default function Dashboard() {
+  const isMobile = useIsMobile();
   const [data, setData] = useState<DashboardData | null>(null);
 
   const load = () => {
@@ -29,7 +31,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 22 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: isMobile ? 12 : 16, marginBottom: 22 }}>
         {stats.map((s) => (
           <div key={s.label} className="k-card" style={{ padding: 22 }}>
             <div className="k-mono" style={{ marginBottom: 14 }}>{s.label}</div>
@@ -40,7 +42,7 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.6fr 1fr', gap: 16 }}>
         <div className="k-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
             <h3 className="k-h" style={{ fontWeight: 600, fontSize: 17 }}>Views — last 30 days</h3>

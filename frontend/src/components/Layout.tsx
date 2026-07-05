@@ -6,6 +6,7 @@ import type { Inquiry, Project, Settings } from '../types';
 import { KLogoImg, initials } from './ui';
 import { ProjectModal } from './ProjectModal';
 import { applyFont } from '../font';
+import { useIsMobile } from '../useMediaQuery';
 
 const nav = [
   { to: '/admin', label: 'Dashboard', g: '▦' },
@@ -35,11 +36,16 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
   const [unread, setUnread] = useState(0);
   const [modalProject, setModalProject] = useState<Project | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Close the mobile drawer whenever the route changes.
+  useEffect(() => setDrawerOpen(false), [pathname]);
 
   const refreshBadge = useCallback(() => {
     void api.get<Inquiry[]>('/inquiries').then((res) => setUnread(res.data.filter((q) => q.unread).length));
@@ -65,6 +71,9 @@ export default function Layout() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
+      {/* SCRIM — closes the drawer when tapping outside (mobile only) */}
+      {isMobile && drawerOpen && <div className="k-drawer-scrim" onClick={() => setDrawerOpen(false)} />}
+
       {/* SIDEBAR */}
       <aside
         style={{
@@ -74,10 +83,19 @@ export default function Layout() {
           padding: '26px 14px 26px 0',
           display: 'flex',
           flexDirection: 'column',
-          position: 'sticky',
-          top: 0,
-          height: '100vh',
           background: 'var(--sidebar)',
+          ...(isMobile
+            ? {
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                height: '100vh',
+                zIndex: 70,
+                boxShadow: '0 20px 60px rgba(23,21,58,.28)',
+                transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
+                transition: 'transform .28s cubic-bezier(0.16,0.8,0.24,1)',
+              }
+            : { position: 'sticky', top: 0, height: '100vh' }),
         }}
       >
         <a
@@ -168,8 +186,9 @@ export default function Layout() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 20,
-            padding: '20px 34px',
+            gap: isMobile ? 12 : 20,
+            flexWrap: isMobile ? 'wrap' : 'nowrap',
+            padding: isMobile ? '14px 16px' : '20px 34px',
             borderBottom: '1px solid var(--border)',
             position: 'sticky',
             top: 0,
@@ -178,17 +197,31 @@ export default function Layout() {
             zIndex: 20,
           }}
         >
-          <div>
-            <div className="k-mono" style={{ marginBottom: 4 }}>KML Production / CMS</div>
-            <h1 className="k-h" style={{ fontSize: 25, letterSpacing: -0.5 }}>{titles[pathname] ?? 'Dashboard'}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+            {isMobile && (
+              <button
+                className="k-icon-btn"
+                aria-label="Open menu"
+                onClick={() => setDrawerOpen(true)}
+                style={{ width: 40, height: 40, fontSize: 18, flex: 'none' }}
+              >
+                ☰
+              </button>
+            )}
+            <div style={{ minWidth: 0 }}>
+              <div className="k-mono" style={{ marginBottom: 4 }}>KML Production / CMS</div>
+              <h1 className="k-h" style={{ fontSize: isMobile ? 20 : 25, letterSpacing: -0.5 }}>{titles[pathname] ?? 'Dashboard'}</h1>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: isMobile ? '100%' : 'auto' }}>
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 9,
-                width: 230,
+                width: isMobile ? 'auto' : 230,
+                flex: isMobile ? 1 : 'none',
+                minWidth: 0,
                 padding: '11px 14px',
                 background: '#fff',
                 border: '1px solid rgba(23,21,58,.14)',
@@ -202,23 +235,24 @@ export default function Layout() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search…"
-                style={{ border: 'none', outline: 'none', background: 'transparent', flex: 1, fontSize: 13.5, color: 'var(--ink)', padding: 0 }}
+                style={{ border: 'none', outline: 'none', background: 'transparent', flex: 1, minWidth: 0, fontSize: 13.5, color: 'var(--ink)', padding: 0 }}
               />
             </div>
             <button
               className="k-btn-grad"
-              style={{ padding: '12px 18px' }}
+              style={{ padding: '12px 18px', flex: 'none' }}
               onClick={() => {
                 setModalProject(null);
                 setModalOpen(true);
               }}
             >
-              <span style={{ fontSize: 15, lineHeight: 1 }}>+</span>New Project
+              <span style={{ fontSize: 15, lineHeight: 1 }}>+</span>
+              {!isMobile && 'New Project'}
             </button>
           </div>
         </header>
 
-        <div style={{ padding: '32px 34px', flex: 1 }}>
+        <div style={{ padding: isMobile ? '20px 16px' : '32px 34px', flex: 1, minWidth: 0 }}>
           <Outlet context={ctx} />
         </div>
       </main>
