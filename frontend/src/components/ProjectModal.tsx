@@ -14,12 +14,14 @@ export function ProjectModal({ project, onClose, onSaved }: { project: Project |
   const [duration, setDuration] = useState(project?.duration ?? '');
   const [status, setStatus] = useState(project?.status ?? 'published');
   const [file, setFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(project?.thumbnail_url ?? null);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [pct, setPct] = useState<number | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const videoInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     void api.get<Category[]>('/categories').then((res) => {
@@ -34,6 +36,11 @@ export function ProjectModal({ project, onClose, onSaved }: { project: Project |
     setPreview(URL.createObjectURL(f));
   };
 
+  const pickVideo = (f: File | undefined | null) => {
+    if (!f || !f.type.startsWith('video/')) return;
+    setVideoFile(f);
+  };
+
   const save = async () => {
     setBusy(true);
     setError('');
@@ -45,11 +52,13 @@ export function ProjectModal({ project, onClose, onSaved }: { project: Project |
     form.append('duration', duration);
     form.append('status', status);
     if (file) form.append('thumbnail', file);
+    if (videoFile) form.append('video', videoFile);
     if (project) form.append('_method', 'PUT');
-    if (file) setPct(0);
+    const uploading = Boolean(file || videoFile);
+    if (uploading) setPct(0);
     try {
       await api.post(project ? `/projects/${project.id}` : '/projects', form, {
-        onUploadProgress: file
+        onUploadProgress: uploading
           ? (e) => setPct(e.total ? (e.loaded / e.total) * 100 : null)
           : undefined,
       });
@@ -112,7 +121,7 @@ export function ProjectModal({ project, onClose, onSaved }: { project: Project |
           )}
         </div>
         <input ref={fileInput} type="file" accept="image/*" hidden onChange={(e) => pick(e.target.files?.[0])} />
-        <ProgressBar value={pct} label="Uploading thumbnail" />
+        <ProgressBar value={file ? pct : null} label="Uploading thumbnail" />
       </div>
       <div>
         <label className="k-label">Title</label>
@@ -136,7 +145,43 @@ export function ProjectModal({ project, onClose, onSaved }: { project: Project |
       </div>
       <div>
         <label className="k-label">Video URL</label>
-        <input className="k-input" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://vimeo.com/…" />
+        <input
+          className="k-input"
+          value={videoUrl}
+          onChange={(e) => setVideoUrl(e.target.value)}
+          placeholder="https://vimeo.com/… or youtube.com/…"
+          disabled={Boolean(videoFile)}
+          style={{ opacity: videoFile ? 0.5 : 1 }}
+        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+          <span className="k-mono" style={{ fontSize: 11, opacity: 0.55, letterSpacing: 1 }}>OR</span>
+          <button
+            type="button"
+            className="k-btn-outline"
+            style={{ padding: '8px 14px', fontSize: 12 }}
+            onClick={() => videoInput.current?.click()}
+          >
+            {videoFile ? 'Change video file' : 'Upload video file'}
+          </button>
+          {videoFile && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, maxWidth: '100%' }}>
+              <span style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{videoFile.name}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setVideoFile(null);
+                  if (videoInput.current) videoInput.current.value = '';
+                }}
+                aria-label="Remove video file"
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 15, lineHeight: 1, color: 'inherit' }}
+              >
+                ×
+              </button>
+            </span>
+          )}
+        </div>
+        <input ref={videoInput} type="file" accept="video/*" hidden onChange={(e) => pickVideo(e.target.files?.[0])} />
+        <ProgressBar value={videoFile ? pct : null} label="Uploading video" />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
         <div>

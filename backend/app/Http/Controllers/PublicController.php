@@ -34,6 +34,7 @@ class PublicController extends Controller
             'stats' => $settings->stats,
             'clients' => $settings->clients,
             'testimonials' => $settings->testimonials,
+            'ticker_items' => $settings->ticker_items,
             'projects' => Project::with('category')
                 ->whereIn('status', $statuses)
                 ->orderByDesc('published_at')

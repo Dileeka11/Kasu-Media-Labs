@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent as ReactMouseEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import type { Category, Project, Socials, Stat, ClientItem, Testimonial } from '../types';
 import { KLogoImg } from '../components/ui';
+import { WorkCard, VideoModal, Placeholder, type ActiveVideo } from '../components/work';
 import { applyFont } from '../font';
 import { useIsMobile, useIsTablet } from '../useMediaQuery';
 
@@ -24,20 +25,12 @@ interface SiteData {
   stats: Stat[] | null;
   clients: ClientItem[] | null;
   testimonials: Testimonial[] | null;
+  ticker_items: string[] | null;
   projects: Project[];
   categories: Category[];
 }
 
-interface ActiveVideo {
-  title: string;
-  client: string | null;
-  duration: string | null;
-  thumbnail_url: string | null;
-  video_url: string | null;
-}
-
 const grad = 'linear-gradient(115deg,#E86FA6,#8354C9 50%,#2B39B8)';
-const gradSteep = 'linear-gradient(135deg,#E86FA6,#8354C9 55%,#2B39B8)';
 
 const services = [
   { phase: '01', tag: 'Pre-Production', items: ['Concept & Creative Development', 'Scriptwriting', 'Storyboarding', 'Location Scouting', 'Casting', 'Production Planning'] },
@@ -76,7 +69,8 @@ const objectives = [
 
 const equipment = ['Cinema Cameras', 'Professional Lighting', 'Aerial Drones', 'Gimbal Stabilizers', 'Sound Equipment', 'Full Studio Setup'];
 const defaultClients = ['NOVA', 'Atlas Group', 'Vertex', 'LUMEN', 'Skyline', 'Orbit Media', 'Frameworks', 'Meridian'];
-const tickerItems = ['Commercials', 'Corporate Films', 'Product Videos', 'Drone Cinematography', 'Documentaries', 'Motion Graphics'];
+// Fallback used only until the studio fills the ticker in from the admin panel.
+const defaultTickerItems = ['Commercials', 'Corporate Films', 'Product Videos', 'Drone Cinematography', 'Documentaries', 'Motion Graphics'];
 const navLinks = [
   ['Work', '#work'],
   ['Services', '#services'],
@@ -85,48 +79,35 @@ const navLinks = [
   ['Contact', '#contact'],
 ] as const;
 
+// Real brand icons for the social links, keyed by the Socials field name.
+const socialIcons: Record<string, ReactElement> = {
+  instagram: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+    </svg>
+  ),
+  youtube: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+    </svg>
+  ),
+  vimeo: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M23.977 6.416c-.105 2.338-1.739 5.543-4.894 9.609-3.268 4.247-6.026 6.37-8.29 6.37-1.409 0-2.578-1.294-3.553-3.881L5.322 11.4C4.603 8.816 3.834 7.522 3.01 7.522c-.179 0-.806.378-1.881 1.132L0 7.197c1.185-1.044 2.351-2.084 3.501-3.128C5.08 2.701 6.266 1.984 7.055 1.91c1.867-.18 3.016 1.1 3.447 3.838.465 2.953.789 4.789.971 5.507.539 2.45 1.131 3.674 1.776 3.674.502 0 1.256-.796 2.265-2.385 1.004-1.589 1.54-2.797 1.612-3.628.144-1.371-.395-2.061-1.614-2.061-.574 0-1.167.121-1.777.391 1.186-3.868 3.434-5.757 6.762-5.637 2.502.06 3.678 1.664 3.554 4.804z"/>
+    </svg>
+  ),
+  linkedin: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+    </svg>
+  ),
+};
+
 const heroSlides: CSSProperties[] = [
   { background: 'radial-gradient(900px 600px at 30% 40%,rgba(131,84,201,.55),transparent 65%),radial-gradient(700px 500px at 75% 70%,rgba(43,57,184,.45),transparent 60%),#0C0A16' },
   { background: 'radial-gradient(900px 600px at 70% 30%,rgba(232,111,166,.4),transparent 60%),radial-gradient(800px 600px at 25% 75%,rgba(43,57,184,.5),transparent 60%),#0D0A18' },
   { background: 'radial-gradient(1000px 700px at 50% 60%,rgba(124,137,255,.35),transparent 65%),radial-gradient(600px 500px at 85% 25%,rgba(131,84,201,.45),transparent 55%),#0B0914' },
 ];
-
-function embedUrl(url: string | null): string | null {
-  if (!url) return null;
-  const vimeo = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?autoplay=1`;
-  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
-  if (yt) return `https://www.youtube.com/embed/${yt[1]}?autoplay=1`;
-  return null;
-}
-
-// A direct video file we can play in a <video> tag (uploads, or plain .mp4 links).
-function isDirectVideo(url: string | null): boolean {
-  if (!url) return false;
-  return /\.(mp4|webm|ogg|mov)(\?|#|$)/i.test(url) || url.includes('/storage/');
-}
-
-function Placeholder({ label, style }: { label: string; style?: CSSProperties }) {
-  return (
-    <div
-      style={{
-        background: 'var(--ssurface-3)',
-        display: 'grid',
-        placeItems: 'center',
-        color: 'var(--sfaint)',
-        fontFamily: 'var(--ui-font)',
-        fontSize: 11.5,
-        letterSpacing: 1.5,
-        textTransform: 'uppercase',
-        textAlign: 'center',
-        padding: 16,
-        ...style,
-      }}
-    >
-      {label}
-    </div>
-  );
-}
 
 // Counts up from 0 to the number inside `value` when it scrolls into view,
 // preserving any prefix/suffix (e.g. "250+", "7 yrs").
@@ -158,7 +139,7 @@ function Counter({ value }: { value: string }) {
         };
         raf = requestAnimationFrame(tick);
       },
-      { threshold: 0.6 },
+      { threshold: 0, rootMargin: '0px 0px -60px 0px' },
     );
     io.observe(el);
     return () => {
@@ -212,6 +193,24 @@ export default function Site() {
       .finally(() => setDataReady(true)); // hide the loader even if the request fails (defaults kick in)
   }, []);
 
+  // Keep the browser-tab favicon + title in sync with the studio's brand.
+  // Seed from the cached logo on first paint so the tab icon never flashes the
+  // default, then refresh once the live site data arrives.
+  useEffect(() => {
+    const url = data?.logo_url || localStorage.getItem('kml_logo');
+    if (url) {
+      let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.removeAttribute('type'); // let the browser infer png/svg/… from the file
+      link.href = url;
+    }
+    if (data?.studio_name) document.title = `${data.studio_name} — Video Production`;
+  }, [data?.logo_url, data?.studio_name]);
+
   // Preloader timing: keep it on screen for at least a beat so it never flashes,
   // then fade out once the site data has arrived, then drop it from the DOM.
   useEffect(() => {
@@ -260,9 +259,9 @@ export default function Site() {
   const filtered = filter === 'All' ? projects : projects.filter((p) => p.category?.name === filter);
   const films = projects.filter((p) => p.status === 'published');
   const featured = films.length ? [...films].sort((a, b) => b.views - a.views)[0] : null;
-  const gridFilms = films.filter((p) => p.id !== featured?.id).slice(0, 6);
 
   // Admin-managed content, falling back to defaults until the studio fills it in.
+  const tickerItems = data?.ticker_items?.length ? data.ticker_items : defaultTickerItems;
   const heroKicker = data?.hero_kicker || 'Full-Service Video Production House';
   const heroHeadline = data?.hero_headline || 'We Create Videos That Move People';
   const heroSub = data?.hero_subheadline || 'From concept to final delivery — cinematic stories for brands, businesses, and creators.';
@@ -319,26 +318,12 @@ export default function Site() {
   };
 
   const mono: CSSProperties = { fontFamily: 'var(--ui-font)' };
-  const embed = activeVideo ? embedUrl(activeVideo.video_url) : null;
 
   // Responsive helpers — collapse multi-column layouts and shrink section
   // padding on small screens. `secPad` is the standard section padding.
   const secPad = isMobile ? '64px 20px' : '96px 40px';
   const stack = (desktop: string) => (isMobile ? '1fr' : desktop);
 
-  // 3D pointer tilt for feature cards.
-  const onTilt = (e: ReactMouseEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    const r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
-    el.style.setProperty('--ry', `${px * 9}deg`);
-    el.style.setProperty('--rx', `${-py * 9}deg`);
-  };
-  const resetTilt = (e: ReactMouseEvent<HTMLDivElement>) => {
-    e.currentTarget.style.setProperty('--ry', '0deg');
-    e.currentTarget.style.setProperty('--rx', '0deg');
-  };
 
   return (
     <div className={`site-root${theme === 'dark' ? ' dark' : ''}`}>
@@ -536,15 +521,13 @@ export default function Site() {
           </div>
         </div>
 
-        <div style={{ position: 'absolute', zIndex: 3, left: 40, right: 40, bottom: 30, display: isMobile ? 'none' : 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, color: '#CFCDE0', ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', pointerEvents: 'none' }}>
-          <span>● REC — SHOWREEL 2026 · 4K / 24FPS</span>
+        <div style={{ position: 'absolute', zIndex: 3, left: 40, right: 40, bottom: 30, display: isMobile ? 'none' : 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 20, color: '#CFCDE0', ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', pointerEvents: 'none' }}>
           <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
             Scroll
             <span style={{ position: 'relative', width: 1, height: 32, background: 'linear-gradient(#8354C9,transparent)', overflow: 'hidden' }}>
               <span style={{ position: 'absolute', top: 0, left: -1.5, width: 4, height: 4, borderRadius: '50%', background: '#E86FA6', boxShadow: '0 0 8px #E86FA6', animation: 'kmlscroll 1.8s ease-in-out infinite' }} />
             </span>
           </span>
-          <span>EST. 2019 — 250+ PROJECTS</span>
         </div>
       </section>
 
@@ -597,10 +580,6 @@ export default function Site() {
           <div className="reveal reveal-l">
             <div className="site-kicker" style={{ marginBottom: 26 }}>( About the studio )</div>
             <Placeholder label="Behind-the-scenes / crew on set" style={{ width: '100%', height: 420, clipPath: 'polygon(0 2%, 100% 0, 98% 98%, 3% 100%)' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', ...mono, fontSize: 11.5, letterSpacing: 1.5, color: 'var(--sfaint)', textTransform: 'uppercase', marginTop: 12 }}>
-              <span>ON SET — DAY 14</span>
-              <span>F2.8 / 24FPS</span>
-            </div>
           </div>
           <div className="reveal reveal-r" style={{ transitionDelay: '0.12s' }}>
             <h2 className="site-h2" style={{ lineHeight: 1, margin: '0 0 30px' }}>Storytelling meets cinematic craft</h2>
@@ -729,95 +708,23 @@ export default function Site() {
               ))}
             </div>
           </div>
-          <div className="reveal-stagger" style={{ borderTop: '1px solid var(--sline-2)' }}>
-            {filtered.map((p, i) => (
-              <div
-                key={p.id}
-                className="work-row"
-                onClick={() => openVideo(p)}
-                style={
-                  isMobile
-                    ? { display: 'flex', flexDirection: 'column', gap: 10, padding: '20px 0', cursor: 'pointer' }
-                    : { display: 'grid', gridTemplateColumns: '80px 1fr 210px 190px', gap: 30, alignItems: 'center', padding: '26px 0', cursor: 'pointer' }
-                }
-              >
-                <div style={{ ...mono, fontSize: 14, color: 'var(--sfaint)' }}>{String(i + 1).padStart(2, '0')}</div>
-                <div>
-                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 34, letterSpacing: -1, textTransform: 'uppercase', lineHeight: 1.05 }}>{p.title}</div>
-                  <div style={{ ...mono, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--sfaint)', marginTop: 8 }}>
-                    {p.client ?? '—'} — {p.duration ?? '—'}
-                  </div>
-                </div>
-                <div style={{ ...mono, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--smuted)', textAlign: 'right' }}>{p.category?.name}</div>
-                {p.thumbnail_url ? (
-                  <div className="work-thumb" style={{ width: 190, height: 110, justifySelf: 'end', clipPath: 'polygon(0 4%, 100% 0, 97% 100%, 2% 96%)', background: `url(${p.thumbnail_url}) center/cover no-repeat` }} />
-                ) : (
-                  <Placeholder label={p.category?.name ?? ''} style={{ width: 190, height: 110, justifySelf: 'end', clipPath: 'polygon(0 4%, 100% 0, 97% 100%, 2% 96%)' }} />
-                )}
-              </div>
+          <div
+            className="reveal-stagger"
+            style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)', gap: isMobile ? 20 : 26, marginTop: 26 }}
+          >
+            {/* Home preview shows the first 6 only — the full archive lives at /work. */}
+            {filtered.slice(0, 6).map((p, i) => (
+              <WorkCard key={p.id} project={p} index={i} onOpen={openVideo} isMobile={isMobile} />
             ))}
-            {filtered.length === 0 && <div style={{ padding: '40px 0', color: 'var(--sfaint)', ...mono, fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase' }}>No projects in this category yet.</div>}
+            {filtered.length === 0 && <div style={{ gridColumn: '1 / -1', padding: '40px 0', color: 'var(--sfaint)', ...mono, fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase' }}>No projects in this category yet.</div>}
           </div>
-        </div>
-      </section>
-
-      {/* FILMS & ANIMATIONS */}
-      <section style={{ position: 'relative', borderTop: '1px solid var(--sline-16)', background: '#0C0A16', color: '#F7F6FB', overflow: 'hidden' }}>
-        <div className="kml-blob" style={{ top: '-6%', left: '-4%', width: 380, height: 380, background: 'rgba(131,84,201,.5)' }} />
-        <div className="kml-blob" style={{ bottom: '-8%', right: '-2%', width: 420, height: 420, background: 'rgba(43,57,184,.45)', animationDelay: '-6s' }} />
-        <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: secPad }}>
-          <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 16, marginBottom: 44 }}>
-            <div className="site-kicker" style={{ color: '#C9A8FF' }}>( Films &amp; animations )</div>
-            <h2 className="site-h2">Motion that sells the space</h2>
-          </div>
-
-          {featured && (
-            <div className="reveal reveal-scale" style={{ marginBottom: 20 }}>
-            <div className="tilt" onMouseMove={onTilt} onMouseLeave={resetTilt} onClick={() => openVideo(featured)} style={{ position: 'relative', borderRadius: 4, overflow: 'hidden', cursor: 'pointer', aspectRatio: isMobile ? '4/3' : '21/9' }}>
-              {featured.thumbnail_url ? (
-                <div className="film-bg" style={{ position: 'absolute', inset: 0, background: `url(${featured.thumbnail_url}) center/cover no-repeat` }} />
-              ) : (
-                <div className="film-bg" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(1000px 500px at 40% 50%,rgba(131,84,201,.5),transparent 65%),#141021' }} />
-              )}
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,rgba(12,10,22,.85),rgba(12,10,22,.15) 60%,rgba(12,10,22,.55))', pointerEvents: 'none' }} />
-              <div style={{ position: 'absolute', left: isMobile ? 20 : 44, bottom: isMobile ? 22 : 40, right: isMobile ? 20 : 44, pointerEvents: 'none', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
-                <div>
-                  <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: '#C9A8FF', marginBottom: 12 }}>● Now playing — Featured</div>
-                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: isMobile ? 26 : 44, letterSpacing: -1.4, textTransform: 'uppercase', lineHeight: 1 }}>{featured.title}</div>
-                  <div style={{ ...mono, fontSize: 12.5, letterSpacing: 1, textTransform: 'uppercase', color: '#B4B1C9', marginTop: 8 }}>
-                    {featured.client ?? '—'} — {featured.duration ?? '—'}
-                  </div>
-                </div>
-                <div style={{ display: 'grid', placeItems: 'center', width: 74, height: 74, borderRadius: '50%', background: gradSteep, flex: 'none', boxShadow: '0 12px 40px rgba(131,84,201,.5)' }}>
-                  <span style={{ borderLeft: '22px solid #fff', borderTop: '13px solid transparent', borderBottom: '13px solid transparent', marginLeft: 5 }} />
-                </div>
-              </div>
-            </div>
+          {filtered.length > 6 && (
+            <div className="reveal" style={{ display: 'flex', justifyContent: 'center', marginTop: isMobile ? 40 : 56 }}>
+              <Link to="/work" className="site-btn-outline" style={{ ...mono, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', textDecoration: 'none', color: 'var(--sink)', padding: '16px 40px', border: '1px solid var(--sline-25)', clipPath: 'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)' }}>
+                View all work →
+              </Link>
             </div>
           )}
-
-          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: stack('repeat(3,1fr)'), gap: 20 }}>
-            {gridFilms.map((v) => (
-              <div key={v.id} className="film-card" onClick={() => openVideo(v)} style={{ position: 'relative', borderRadius: 4, overflow: 'hidden', cursor: 'pointer', aspectRatio: '16/9' }}>
-                {v.thumbnail_url ? (
-                  <div className="film-bg" style={{ position: 'absolute', inset: 0, background: `url(${v.thumbnail_url}) center/cover no-repeat` }} />
-                ) : (
-                  <div className="film-bg" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(500px 300px at 50% 50%,rgba(43,57,184,.45),transparent 70%),#151126' }} />
-                )}
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg,rgba(12,10,22,.9),rgba(12,10,22,.05) 60%)', pointerEvents: 'none' }} />
-                <div style={{ position: 'absolute', top: 14, right: 14, ...mono, fontSize: 11, letterSpacing: 1, color: '#fff', background: 'rgba(12,10,22,.6)', backdropFilter: 'blur(6px)', padding: '4px 9px', borderRadius: 100, pointerEvents: 'none' }}>
-                  {v.duration ?? '—'}
-                </div>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', display: 'grid', placeItems: 'center', width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.5)', backdropFilter: 'blur(4px)', pointerEvents: 'none' }}>
-                  <span style={{ borderLeft: '15px solid #fff', borderTop: '9px solid transparent', borderBottom: '9px solid transparent', marginLeft: 4 }} />
-                </div>
-                <div style={{ position: 'absolute', left: 16, bottom: 14, right: 16, pointerEvents: 'none' }}>
-                  <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 19, textTransform: 'uppercase', lineHeight: 1.05 }}>{v.title}</div>
-                  <div style={{ ...mono, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: '#B4B1C9', marginTop: 5 }}>{v.client ?? '—'}</div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -887,10 +794,6 @@ export default function Site() {
           </div>
           <div className="reveal reveal-r" style={{ transitionDelay: '0.12s' }}>
             <Placeholder label="Studio / camera rig photo" style={{ width: '100%', height: 400, clipPath: 'polygon(2% 0, 100% 2%, 98% 100%, 0 97%)' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', ...mono, fontSize: 11.5, letterSpacing: 1.5, color: 'var(--sfaint)', textTransform: 'uppercase', marginTop: 12 }}>
-              <span>STAGE A — RIG 02</span>
-              <span>8K RAW</span>
-            </div>
           </div>
         </div>
       </section>
@@ -933,11 +836,11 @@ export default function Site() {
                   const href = data?.socials?.[key];
                   const base: CSSProperties = { width: 42, height: 42, display: 'grid', placeItems: 'center', border: '1px solid var(--sline-25)', ...mono, fontSize: 11, fontWeight: 700, color: 'var(--sink)', textDecoration: 'none' };
                   return href ? (
-                    <a key={so} href={href} target="_blank" rel="noreferrer" style={{ ...base, cursor: 'pointer' }}>
-                      {so}
+                    <a key={so} href={href} target="_blank" rel="noreferrer" aria-label={key} style={{ ...base, cursor: 'pointer' }}>
+                      {socialIcons[key] ?? so}
                     </a>
                   ) : (
-                    <div key={so} style={{ ...base, opacity: 0.4 }}>{so}</div>
+                    <div key={so} style={{ ...base, opacity: 0.4 }}>{socialIcons[key] ?? so}</div>
                   );
                 })}
               </div>
@@ -985,78 +888,143 @@ export default function Site() {
       </section>
 
       {/* FOOTER */}
-      <footer style={{ borderTop: '1px solid var(--sline-2)', background: 'var(--ssurface)' }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto', padding: isMobile ? '32px 20px' : '44px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 22 }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <KLogoImg gradient size={38} src={data?.logo_url} />
+      <footer
+        style={{
+          position: 'relative',
+          background:
+            'radial-gradient(1200px 620px at 16% -12%,rgba(131,84,201,.32),transparent 60%),radial-gradient(1000px 540px at 88% 18%,rgba(43,57,184,.26),transparent 62%),#0A0813',
+          color: '#F4F3FA',
+        }}
+      >
+        {/* Animated wave transition rising from the page into the footer */}
+        <div className="foot-waves-container" aria-hidden>
+          <svg className="foot-waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 24 150 28" preserveAspectRatio="none" shapeRendering="auto">
+            <defs>
+              <path id="foot-wave" d="M-160 44c30 0 58-18 88-18s58 18 88 18 58-18 88-18 58 18 88 18v44h-352z" />
+            </defs>
+            <g className="foot-parallax">
+              <use href="#foot-wave" x="48" y="0" fill="rgba(131,84,201,0.20)" />
+              <use href="#foot-wave" x="48" y="3" fill="rgba(232,111,166,0.32)" />
+              <use href="#foot-wave" x="48" y="5" fill="rgba(43,57,184,0.55)" />
+              <use href="#foot-wave" x="48" y="7" fill="#0A0813" />
+            </g>
+          </svg>
+        </div>
+
+        {/* Clipped stage for ambient glows + content */}
+        <div style={{ position: 'relative', overflow: 'hidden' }}>
+          {/* Ambient drifting glows */}
+          <div className="kml-blob" aria-hidden style={{ width: 460, height: 460, left: '-9%', top: '-14%', background: 'radial-gradient(circle,rgba(232,111,166,.5),transparent 70%)' }} />
+          <div className="kml-blob" aria-hidden style={{ width: 540, height: 540, right: '-11%', bottom: '-20%', background: 'radial-gradient(circle,rgba(43,57,184,.5),transparent 70%)', animationDelay: '-7s' }} />
+
+          <div style={{ position: 'relative', zIndex: 2, maxWidth: 1360, margin: '0 auto', padding: isMobile ? '26px 20px 30px' : '44px 40px 40px' }}>
+          {/* Status pill */}
+          <div className="reveal" style={{ marginBottom: isMobile ? 26 : 40 }}>
+            <span className="foot-rec" style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: '#C9A8FF' }}>
+              Available for new projects — {new Date().getFullYear()}
+            </span>
           </div>
-          <div style={{ display: 'flex', gap: 26, ...mono, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase' }}>
-            {[
-              ['Home', '#'],
-              ['Work', '#work'],
-              ['Services', '#services'],
-              ['About', '#about'],
-              ['Contact', '#contact'],
-            ].map(([l, h]) => (
-              <a key={l} href={h} style={{ color: 'var(--smuted)', textDecoration: 'none' }}>
-                {l}
-              </a>
-            ))}
+
+          {/* Columns */}
+          <div
+            className="reveal-stagger"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1.7fr 1fr 1fr 1.3fr',
+              gap: isMobile ? 34 : 48,
+              borderTop: '1px solid rgba(255,255,255,.12)',
+              paddingTop: isMobile ? 32 : 48,
+            }}
+          >
+            {/* Brand */}
+            <div>
+              <KLogoImg gradient size={40} src={data?.logo_url} />
+              <p style={{ margin: '18px 0 22px', maxWidth: 300, fontSize: 14, lineHeight: 1.7, color: '#B4B1C9' }}>
+                {data?.studio_name ?? 'KML Production'} — cinematic video production, from first concept to final cut.
+              </p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                {socials.map(([so, key]) => {
+                  const href = data?.socials?.[key];
+                  return href ? (
+                    <a key={so} className="foot-soc" href={href} target="_blank" rel="noreferrer" aria-label={key} style={{ ...mono, fontSize: 11, fontWeight: 700 }}>
+                      <span>{socialIcons[key] ?? so}</span>
+                    </a>
+                  ) : (
+                    <span key={so} className="foot-soc foot-soc--off" style={{ ...mono, fontSize: 11, fontWeight: 700 }}>
+                      <span>{socialIcons[key] ?? so}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Explore */}
+            <div>
+              <div style={{ ...mono, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: '#7C7A93', marginBottom: 18 }}>Explore</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 13, alignItems: 'flex-start' }}>
+                {navLinks.map(([l, h]) => (
+                  <a key={l} className="foot-link" href={h} style={{ fontSize: 14.5 }}>{l}</a>
+                ))}
+              </div>
+            </div>
+
+            {/* Services */}
+            <div>
+              <div style={{ ...mono, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: '#7C7A93', marginBottom: 18 }}>Services</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 13, alignItems: 'flex-start' }}>
+                {services.map((s) => (
+                  <a key={s.tag} className="foot-link" href="#services" style={{ fontSize: 14.5 }}>{s.tag}</a>
+                ))}
+              </div>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <div style={{ ...mono, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: '#7C7A93', marginBottom: 18 }}>Get in touch</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'flex-start' }}>
+                <a className="foot-link" href={`mailto:${data?.contact_email ?? 'hello@kmlproduction.com'}`} style={{ fontSize: 14.5 }}>
+                  {data?.contact_email ?? 'hello@kmlproduction.com'}
+                </a>
+                <a className="foot-link" href={`tel:${phone.replace(/[^\d+]/g, '')}`} style={{ fontSize: 14.5 }}>{phone}</a>
+                <div style={{ fontSize: 14, lineHeight: 1.6, color: '#B4B1C9', maxWidth: 220 }}>{address}</div>
+              </div>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <Link to="/admin" style={{ ...mono, fontSize: 11.5, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--sfaint)', textDecoration: 'none' }}>
-              Admin Login ↗
-            </Link>
-            <div style={{ ...mono, fontSize: 11.5, color: 'var(--sfaint)' }}>© 2026 KML PRODUCTION</div>
+
+          {/* Bottom bar */}
+          <div
+            className="reveal"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 16,
+              marginTop: isMobile ? 34 : 54,
+              paddingTop: 24,
+              borderTop: '1px solid rgba(255,255,255,.1)',
+              ...mono,
+              fontSize: 11.5,
+              letterSpacing: 0.5,
+              color: '#7C7A93',
+            }}
+          >
+            <div>© {new Date().getFullYear()} {(data?.studio_name ?? 'KML Production').toUpperCase()}. All rights reserved.</div>
+            <a
+              href="#top"
+              onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              className="foot-top"
+              style={{ ...mono, fontSize: 11.5, letterSpacing: 1, textTransform: 'uppercase', color: '#B4B1C9', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+            >
+              Back to top <span className="foot-top-arrow">↑</span>
+            </a>
+          </div>
           </div>
         </div>
       </footer>
 
       {/* VIDEO LIGHTBOX */}
-      {activeVideo && (
-        <div onClick={() => setActiveVideo(null)} style={{ position: 'fixed', inset: 0, zIndex: 9600, background: 'rgba(6,5,12,.9)', backdropFilter: 'blur(10px)', display: 'grid', placeItems: 'center', padding: isMobile ? 16 : 40 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 'min(1100px,100%)', maxHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 14, color: '#F7F6FB', flex: '0 0 auto' }}>
-              <div>
-                <div style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: '#C9A8FF', marginBottom: 8 }}>● Now playing</div>
-                <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 30, letterSpacing: -1, textTransform: 'uppercase', lineHeight: 1 }}>{activeVideo.title}</div>
-                <div style={{ ...mono, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', color: '#B4B1C9', marginTop: 6 }}>
-                  {activeVideo.client ?? '—'} — {activeVideo.duration ?? '—'}
-                </div>
-              </div>
-              <button onClick={() => setActiveVideo(null)} style={{ width: 44, height: 44, border: '1px solid rgba(255,255,255,.3)', background: 'transparent', color: '#fff', fontSize: 17, display: 'grid', placeItems: 'center', flex: 'none' }}>
-                ✕
-              </button>
-            </div>
-            <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', maxHeight: 'calc(100vh - 170px)', minHeight: 0, background: '#000', border: '1px solid rgba(255,255,255,.14)', overflow: 'hidden' }}>
-              {embed ? (
-                <iframe src={embed} title={activeVideo.title} allow="autoplay; fullscreen" allowFullScreen style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }} />
-              ) : isDirectVideo(activeVideo.video_url) ? (
-                <video src={activeVideo.video_url ?? undefined} controls autoPlay playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }} />
-              ) : (
-                <>
-                  {activeVideo.thumbnail_url ? (
-                    <div style={{ position: 'absolute', inset: 0, background: `url(${activeVideo.thumbnail_url}) center/cover no-repeat` }} />
-                  ) : (
-                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(800px 500px at 50% 45%,rgba(131,84,201,.4),transparent 70%),#0B0914' }} />
-                  )}
-                  <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 45%,rgba(0,0,0,.15),rgba(0,0,0,.55))', pointerEvents: 'none' }} />
-                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', display: 'grid', placeItems: 'center', width: 88, height: 88, borderRadius: '50%', background: gradSteep, boxShadow: '0 16px 50px rgba(131,84,201,.6)', pointerEvents: 'none' }}>
-                    <span style={{ borderLeft: '26px solid #fff', borderTop: '16px solid transparent', borderBottom: '16px solid transparent', marginLeft: 6 }} />
-                  </div>
-                  <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, background: 'linear-gradient(0deg,rgba(0,0,0,.7),transparent)', pointerEvents: 'none' }}>
-                    <span style={{ ...mono, fontSize: 12, color: '#fff' }}>00:00</span>
-                    <div style={{ flex: 1, height: 4, borderRadius: 100, background: 'rgba(255,255,255,.25)', overflow: 'hidden' }}>
-                      <div style={{ width: '18%', height: '100%', background: 'linear-gradient(90deg,#E86FA6,#2B39B8)' }} />
-                    </div>
-                    <span style={{ ...mono, fontSize: 12, color: '#B4B1C9' }}>{activeVideo.duration ?? '—'}</span>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {activeVideo && <VideoModal active={activeVideo} onClose={() => setActiveVideo(null)} isMobile={isMobile} />}
     </div>
   );
 }

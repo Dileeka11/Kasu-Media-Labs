@@ -21,6 +21,9 @@ class ProjectController extends Controller
     {
         $data = $this->validated($request);
         $data['thumbnail'] = $this->storeThumbnail($request);
+        if ($video = $this->storeVideo($request)) {
+            $data['video_url'] = $video;
+        }
         $data['published_at'] = $data['status'] === 'published' ? now()->toDateString() : null;
 
         $project = Project::create($data);
@@ -38,6 +41,11 @@ class ProjectController extends Controller
                 Storage::disk('public')->delete($project->thumbnail);
             }
             $data['thumbnail'] = $thumb;
+        }
+
+        if ($video = $this->storeVideo($request)) {
+            $this->deleteLocalVideo($project->video_url);
+            $data['video_url'] = $video;
         }
 
         if ($data['status'] === 'published' && ! $project->published_at) {
@@ -59,6 +67,7 @@ class ProjectController extends Controller
         if ($project->thumbnail) {
             Storage::disk('public')->delete($project->thumbnail);
         }
+        $this->deleteLocalVideo($project->video_url);
         $project->delete();
         Activity::log("\u{201C}{$project->title}\u{201D} deleted", 'by '.$request->user()->name);
 
@@ -88,5 +97,36 @@ class ProjectController extends Controller
         ]);
 
         return $request->file('thumbnail')->store('thumbnails', 'public');
+    }
+
+    /**
+     * Store an uploaded video file (optional) and return its public URL, so an
+     * admin can either paste a link (Vimeo/YouTube) OR upload the file itself.
+     */
+    private function storeVideo(Request $request): ?string
+    {
+        if (! $request->hasFile('video')) {
+            return null;
+        }
+
+        $request->validate([
+            'video' => ['file', 'mimetypes:video/mp4,video/quicktime,video/webm,video/x-msvideo,video/x-matroska', 'max:512000'],
+        ]);
+
+        $path = $request->file('video')->store('videos', 'public');
+
+        return asset('storage/'.$path);
+    }
+
+    /**
+     * Remove a previously uploaded video file when it is replaced or deleted.
+     * External links (Vimeo/YouTube) are left untouched.
+     */
+    private function deleteLocalVideo(?string $url): void
+    {
+        if ($url && str_contains($url, '/storage/videos/')) {
+            $path = substr($url, strpos($url, '/storage/') + strlen('/storage/'));
+            Storage::disk('public')->delete($path);
+        }
     }
 }

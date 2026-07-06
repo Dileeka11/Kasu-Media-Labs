@@ -67,6 +67,10 @@ class SettingController extends Controller
             'testimonials.*.quote' => ['required', 'string', 'max:600'],
             'testimonials.*.author' => ['required', 'string', 'max:120'],
             'testimonials.*.role' => ['nullable', 'string', 'max:120'],
+
+            // Ticker (scrolling services strip)
+            'ticker_items' => ['sometimes', 'nullable', 'array', 'max:20'],
+            'ticker_items.*' => ['required', 'string', 'max:60'],
         ]);
 
         $setting = Setting::instance();

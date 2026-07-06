@@ -9,7 +9,7 @@ class Setting extends Model
     protected $fillable = [
         'studio_name', 'contact_email', 'font', 'email_on_inquiries', 'auto_publish', 'show_drafts',
         'logo', 'hero_video', 'showreel_url', 'hero_kicker', 'hero_headline', 'hero_subheadline',
-        'phone', 'address', 'socials', 'stats', 'clients', 'testimonials',
+        'phone', 'address', 'socials', 'stats', 'clients', 'testimonials', 'ticker_items',
     ];
 
     protected $appends = ['logo_url', 'hero_video_url'];
@@ -24,6 +24,7 @@ class Setting extends Model
             'stats' => 'array',
             'clients' => 'array',
             'testimonials' => 'array',
+            'ticker_items' => 'array',
         ];
     }
 
