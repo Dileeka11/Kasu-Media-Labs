@@ -434,7 +434,7 @@ export default function Site() {
       )}
 
       {/* HERO */}
-      <section style={{ position: 'relative', height: '100vh', minHeight: 640, marginTop: -76, overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
+      <section style={{ position: 'relative', height: '100vh', minHeight: 640, overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
         <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: '#0C0A16' }}>
           {heroSlides.map((bg, i) => (
             <div key={i} style={{ position: 'absolute', inset: 0, animation: `kmlfade 21s infinite ${i * 7}s, kmlkb 21s infinite ${i * 7}s`, ...bg }} />
@@ -490,7 +490,7 @@ export default function Site() {
           }}
         />
 
-        <div style={{ position: 'relative', zIndex: 3, width: '100%', maxWidth: 1360, margin: '0 auto', padding: isMobile ? '76px 20px 0' : '76px 40px 0', color: '#F7F6FB' }}>
+        <div style={{ position: 'relative', zIndex: 3, width: '100%', maxWidth: 1360, margin: '0 auto', padding: isMobile ? '80px 20px 0' : '96px 40px 0', color: '#F7F6FB' }}>
           <div className="hero-in hero-in-1" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 15px', border: '1px solid rgba(255,255,255,.24)', borderRadius: 100, ...mono, fontSize: 11.5, letterSpacing: 2, textTransform: 'uppercase', color: '#EDEBF6', marginBottom: 30 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#E86FA6', boxShadow: '0 0 12px #E86FA6', animation: 'kmlbob 2.4s ease-in-out infinite' }} />
             {heroKicker}
@@ -576,7 +576,7 @@ export default function Site() {
       </section>
 
       {/* ABOUT */}
-      <section id="about" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: 76 }}>
+      <section id="about" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: isMobile ? 68 : 80 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad, display: 'grid', gridTemplateColumns: stack('.9fr 1.4fr'), gap: isMobile ? 40 : 70 }}>
           <div className="reveal reveal-l">
             <div className="site-kicker" style={{ marginBottom: 26 }}>( About the studio )</div>
@@ -650,7 +650,7 @@ export default function Site() {
       </section>
 
       {/* SERVICES */}
-      <section id="services" style={{ borderTop: '1px solid var(--sline-16)', background: 'var(--ssurface)', scrollMarginTop: 76 }}>
+      <section id="services" style={{ borderTop: '1px solid var(--sline-16)', background: 'var(--ssurface)', scrollMarginTop: isMobile ? 68 : 80 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 60, flexWrap: 'wrap', gap: 16 }}>
             <div className="site-kicker">( What we do )</div>
@@ -677,7 +677,7 @@ export default function Site() {
       </section>
 
       {/* WORK INDEX */}
-      <section id="work" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: 76 }}>
+      <section id="work" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: isMobile ? 68 : 80 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 18, marginBottom: 20 }}>
             <div>
@@ -730,7 +730,7 @@ export default function Site() {
       </section>
 
       {/* PROCESS */}
-      <section id="process" style={{ position: 'relative', borderTop: '1px solid var(--sline-16)', background: '#17153A', color: '#F7F6FB', scrollMarginTop: 76, overflow: 'hidden' }}>
+      <section id="process" style={{ position: 'relative', borderTop: '1px solid var(--sline-16)', background: '#17153A', color: '#F7F6FB', scrollMarginTop: isMobile ? 68 : 80, overflow: 'hidden' }}>
         <div className="kml-blob" style={{ top: '10%', right: '-5%', width: 360, height: 360, background: 'rgba(232,111,166,.35)' }} />
         <div className="kml-blob" style={{ bottom: '-10%', left: '-4%', width: 400, height: 400, background: 'rgba(131,84,201,.4)', animationDelay: '-8s' }} />
         <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: secPad }}>
@@ -816,7 +816,7 @@ export default function Site() {
       </section>
 
       {/* CONTACT */}
-      <section id="contact" ref={contactRef} style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: 76 }}>
+      <section id="contact" ref={contactRef} style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: isMobile ? 68 : 80 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad, display: 'grid', gridTemplateColumns: stack('1fr 1.3fr'), gap: isMobile ? 44 : 80 }}>
           <div className="reveal reveal-l">
             <div className="site-kicker" style={{ marginBottom: 20 }}>( Get in touch )</div>

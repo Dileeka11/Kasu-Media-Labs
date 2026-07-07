@@ -59,7 +59,7 @@ export default function Work() {
   const filtered = filter === 'All' ? projects : projects.filter((p) => p.category?.name === filter);
 
   const mono: CSSProperties = { fontFamily: 'var(--ui-font)' };
-  const secPad = isMobile ? '110px 20px 64px' : '150px 40px 96px';
+  const secPad = isMobile ? '114px 20px 64px' : '154px 40px 96px';
 
   const openVideo = (p: Project) =>
     setActiveVideo({ title: p.title, client: p.client, duration: p.duration, thumbnail_url: p.thumbnail_url, video_url: p.video_url });
