@@ -10,6 +10,11 @@ import Categories from './pages/Categories';
 import Inquiries from './pages/Inquiries';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
+import SettingsProfile from './pages/settings/SettingsProfile';
+import SettingsMedia from './pages/settings/SettingsMedia';
+import SettingsHero from './pages/settings/SettingsHero';
+import SettingsSocials from './pages/settings/SettingsSocials';
+import SettingsMarketing from './pages/settings/SettingsMarketing';
 
 function Protected() {
   const { user, loading } = useAuth();
@@ -32,7 +37,13 @@ export default function App() {
             <Route path="/admin/categories" element={<Categories />} />
             <Route path="/admin/inquiries" element={<Inquiries />} />
             <Route path="/admin/users" element={<Users />} />
-            <Route path="/admin/settings" element={<Settings />} />
+            <Route path="/admin/settings" element={<Settings />}>
+              <Route index element={<SettingsProfile />} />
+              <Route path="media" element={<SettingsMedia />} />
+              <Route path="hero" element={<SettingsHero />} />
+              <Route path="socials" element={<SettingsSocials />} />
+              <Route path="marketing" element={<SettingsMarketing />} />
+            </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

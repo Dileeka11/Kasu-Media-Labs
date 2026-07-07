@@ -106,12 +106,14 @@ export default function Layout() {
           <KLogoImg gradient size={42} src={logoUrl} />
         </a>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, paddingLeft: 8 }}>
-          {nav.map((n) => (
-            <button
-              key={n.to}
-              className={`k-nav-btn${pathname === n.to ? ' active' : ''}`}
-              onClick={() => void navigate(n.to)}
-            >
+          {nav.map((n) => {
+            const isActive = n.to === '/admin' ? pathname === '/admin' : pathname.startsWith(n.to);
+            return (
+              <button
+                key={n.to}
+                className={`k-nav-btn${isActive ? ' active' : ''}`}
+                onClick={() => void navigate(n.to)}
+              >
               <span style={{ width: 20, textAlign: 'center', fontSize: 15 }}>{n.g}</span>
               <span style={{ flex: 1 }}>{n.label}</span>
               {n.to === '/admin/inquiries' && unread > 0 && (
@@ -133,7 +135,8 @@ export default function Layout() {
                 </span>
               )}
             </button>
-          ))}
+            );
+          })}
         </div>
         <div style={{ padding: '14px 12px 0 22px', borderTop: '1px solid rgba(23,21,58,.1)', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
@@ -210,7 +213,9 @@ export default function Layout() {
             )}
             <div style={{ minWidth: 0 }}>
               <div className="k-mono" style={{ marginBottom: 4 }}>KML Production / CMS</div>
-              <h1 className="k-h" style={{ fontSize: isMobile ? 20 : 25, letterSpacing: -0.5 }}>{titles[pathname] ?? 'Dashboard'}</h1>
+              <h1 className="k-h" style={{ fontSize: isMobile ? 20 : 25, letterSpacing: -0.5 }}>
+                {pathname.startsWith('/admin/settings') ? 'Settings' : (titles[pathname] ?? 'Dashboard')}
+              </h1>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: isMobile ? '100%' : 'auto' }}>
