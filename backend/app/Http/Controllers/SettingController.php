@@ -30,6 +30,7 @@ class SettingController extends Controller
             'studio_name' => ['sometimes', 'required', 'string', 'max:255'],
             'contact_email' => ['sometimes', 'required', 'email', 'max:255'],
             'font' => ['sometimes', 'required', 'string', Rule::in(self::FONTS)],
+            'ticker_font' => ['sometimes', 'nullable', 'string', Rule::in(self::FONTS)],
             'email_on_inquiries' => ['sometimes', 'required', 'boolean'],
             'auto_publish' => ['sometimes', 'required', 'boolean'],
             'show_drafts' => ['sometimes', 'required', 'boolean'],

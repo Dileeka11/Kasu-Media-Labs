@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Setting extends Model
 {
     protected $fillable = [
-        'studio_name', 'contact_email', 'font', 'email_on_inquiries', 'auto_publish', 'show_drafts',
+        'studio_name', 'contact_email', 'font', 'ticker_font', 'email_on_inquiries', 'auto_publish', 'show_drafts',
         'logo', 'hero_video', 'showreel_url', 'hero_kicker', 'hero_headline', 'hero_subheadline',
         'phone', 'address', 'socials', 'stats', 'clients', 'testimonials', 'ticker_items',
     ];

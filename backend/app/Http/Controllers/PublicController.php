@@ -22,6 +22,7 @@ class PublicController extends Controller
             'studio_name' => $settings->studio_name,
             'contact_email' => $settings->contact_email,
             'font' => $settings->font,
+            'ticker_font' => $settings->ticker_font,
             'logo_url' => $settings->logo_url,
             'hero_video_url' => $settings->hero_video_url,
             'showreel_url' => $settings->showreel_url,

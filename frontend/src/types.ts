@@ -96,6 +96,7 @@ export interface Settings {
   clients: ClientItem[] | null;
   testimonials: Testimonial[] | null;
   ticker_items: string[] | null;
+  ticker_font: string | null;
 }
 
 export interface DashboardData {

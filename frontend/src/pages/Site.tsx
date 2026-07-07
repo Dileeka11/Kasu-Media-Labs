@@ -4,7 +4,7 @@ import axios from 'axios';
 import type { Category, Project, Socials, Stat, ClientItem, Testimonial } from '../types';
 import { KLogoImg } from '../components/ui';
 import { WorkCard, VideoModal, Placeholder, type ActiveVideo } from '../components/work';
-import { applyFont } from '../font';
+import { applyFont, fontStack } from '../font';
 import { useIsMobile, useIsTablet } from '../useMediaQuery';
 
 const API = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api') as string;
@@ -26,6 +26,7 @@ interface SiteData {
   clients: ClientItem[] | null;
   testimonials: Testimonial[] | null;
   ticker_items: string[] | null;
+  ticker_font: string | null;
   projects: Project[];
   categories: Category[];
 }
@@ -535,7 +536,7 @@ export default function Site() {
       <div style={{ marginTop: 70, borderTop: '1px solid var(--sline-16)', borderBottom: '1px solid var(--sline-16)', overflow: 'hidden', padding: '16px 0', background: 'var(--ssurface)' }}>
         <div style={{ display: 'flex', width: 'max-content', animation: 'kmlticker 30s linear infinite' }}>
           {[...tickerItems, ...tickerItems].map((t, i) => (
-            <span key={i} style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 20, textTransform: 'uppercase', letterSpacing: 1, whiteSpace: 'nowrap', paddingRight: 18 }}>
+            <span key={i} style={{ fontFamily: data?.ticker_font ? fontStack(data.ticker_font) : 'var(--ui-font)', fontWeight: 600, fontSize: 20, textTransform: 'uppercase', letterSpacing: 1, whiteSpace: 'nowrap', paddingRight: 18 }}>
               {t}
               <span style={{ color: '#8354C9', paddingLeft: 18 }}>✦</span>
             </span>

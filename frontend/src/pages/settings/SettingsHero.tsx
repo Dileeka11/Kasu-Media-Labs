@@ -1,5 +1,6 @@
 import { useOutletContext } from 'react-router-dom';
 import type { Settings as SettingsData } from '../../types';
+import { FONT_OPTIONS, fontStack } from '../../font';
 
 interface SettingsContext {
   settings: SettingsData;
@@ -60,7 +61,23 @@ export default function SettingsHero() {
           ))}
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 4 }}>
             <button className="k-btn-outline" onClick={() => setLocal({ ticker_items: [...ticker, ''] })} disabled={ticker.length >= 20}>+ Add item</button>
-            <button className="k-btn-grad" onClick={() => void saveWith({ ticker_items: ticker })} disabled={busy}>{busy ? 'Saving…' : 'Save ticker'}</button>
+          </div>
+
+          <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <label className="k-label">Ticker Font</label>
+            <select className="k-input" value={s.ticker_font ?? ''} onChange={(e) => setLocal({ ticker_font: e.target.value || null })}>
+              <option value="">Default (Global Site Font)</option>
+              {FONT_OPTIONS.map((f) => (
+                <option key={f.name} value={f.name}>{f.name}</option>
+              ))}
+            </select>
+            <div style={{ marginTop: 10, padding: '14px 16px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg)', fontFamily: fontStack(s.ticker_font || s.font), fontSize: 18, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>
+              Preview: Commercials ✦ Corporate Films ✦ Product Videos
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 10 }}>
+            <button className="k-btn-grad" onClick={() => void saveWith({ ticker_items: ticker, ticker_font: s.ticker_font })} disabled={busy}>{busy ? 'Saving…' : 'Save ticker settings'}</button>
             {savedTag}
           </div>
         </div>
