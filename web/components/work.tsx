@@ -1,5 +1,7 @@
+'use client';
+
 import { type CSSProperties } from 'react';
-import type { Project } from '../types';
+import type { Project } from '../lib/types';
 
 // Shared building blocks for the "Selected work" video grid — used by both the
 // home page (a 6-item preview) and the dedicated /work page (the full archive).

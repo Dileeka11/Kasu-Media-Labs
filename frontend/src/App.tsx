@@ -1,8 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './AuthContext';
 import Layout from './components/Layout';
-import Site from './pages/Site';
-import Work from './pages/Work';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
@@ -28,8 +26,8 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Site />} />
-          <Route path="/work" element={<Work />} />
+          {/* Public website (/, /work) now lives in the separate Next.js app in
+              ../web. This Vite app is the admin panel only. */}
           <Route path="/admin/login" element={<Login />} />
           <Route element={<Protected />}>
             <Route path="/admin" element={<Dashboard />} />
@@ -45,7 +43,7 @@ export default function App() {
               <Route path="marketing" element={<SettingsMarketing />} />
             </Route>
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

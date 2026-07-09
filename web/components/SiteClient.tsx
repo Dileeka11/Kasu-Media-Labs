@@ -1,35 +1,14 @@
+'use client';
+
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactElement } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
-import type { Category, Project, Socials, Stat, ClientItem, Testimonial } from '../types';
-import { KLogoImg } from '../components/ui';
-import { WorkCard, VideoModal, Placeholder, type ActiveVideo } from '../components/work';
-import { applyFont, fontStack } from '../font';
-import { useIsMobile, useIsTablet } from '../useMediaQuery';
+import Link from 'next/link';
+import type { Category, ClientItem, Project, Socials, SiteData } from '../lib/types';
+import { KLogoImg } from './ui';
+import { WorkCard, VideoModal, Placeholder, type ActiveVideo } from './work';
+import { applyFont, fontStack } from '../lib/font';
+import { useIsMobile, useIsTablet } from '../lib/useMediaQuery';
 
-const API = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api') as string;
-
-interface SiteData {
-  studio_name: string;
-  contact_email: string;
-  font: string;
-  logo_url: string | null;
-  hero_video_url: string | null;
-  showreel_url: string | null;
-  hero_kicker: string | null;
-  hero_headline: string | null;
-  hero_subheadline: string | null;
-  phone: string | null;
-  address: string | null;
-  socials: Socials | null;
-  stats: Stat[] | null;
-  clients: ClientItem[] | null;
-  testimonials: Testimonial[] | null;
-  ticker_items: string[] | null;
-  ticker_font: string | null;
-  projects: Project[];
-  categories: Category[];
-}
+const API = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api') as string;
 
 const grad = 'linear-gradient(115deg,#E86FA6,#8354C9 50%,#2B39B8)';
 
@@ -84,22 +63,22 @@ const navLinks = [
 const socialIcons: Record<string, ReactElement> = {
   instagram: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
     </svg>
   ),
   youtube: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
     </svg>
   ),
   vimeo: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M23.977 6.416c-.105 2.338-1.739 5.543-4.894 9.609-3.268 4.247-6.026 6.37-8.29 6.37-1.409 0-2.578-1.294-3.553-3.881L5.322 11.4C4.603 8.816 3.834 7.522 3.01 7.522c-.179 0-.806.378-1.881 1.132L0 7.197c1.185-1.044 2.351-2.084 3.501-3.128C5.08 2.701 6.266 1.984 7.055 1.91c1.867-.18 3.016 1.1 3.447 3.838.465 2.953.789 4.789.971 5.507.539 2.45 1.131 3.674 1.776 3.674.502 0 1.256-.796 2.265-2.385 1.004-1.589 1.54-2.797 1.612-3.628.144-1.371-.395-2.061-1.614-2.061-.574 0-1.167.121-1.777.391 1.186-3.868 3.434-5.757 6.762-5.637 2.502.06 3.678 1.664 3.554 4.804z"/>
+      <path d="M23.977 6.416c-.105 2.338-1.739 5.543-4.894 9.609-3.268 4.247-6.026 6.37-8.29 6.37-1.409 0-2.578-1.294-3.553-3.881L5.322 11.4C4.603 8.816 3.834 7.522 3.01 7.522c-.179 0-.806.378-1.881 1.132L0 7.197c1.185-1.044 2.351-2.084 3.501-3.128C5.08 2.701 6.266 1.984 7.055 1.91c1.867-.18 3.016 1.1 3.447 3.838.465 2.953.789 4.789.971 5.507.539 2.45 1.131 3.674 1.776 3.674.502 0 1.256-.796 2.265-2.385 1.004-1.589 1.54-2.797 1.612-3.628.144-1.371-.395-2.061-1.614-2.061-.574 0-1.167.121-1.777.391 1.186-3.868 3.434-5.757 6.762-5.637 2.502.06 3.678 1.664 3.554 4.804z" />
     </svg>
   ),
   linkedin: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
     </svg>
   ),
 };
@@ -151,25 +130,44 @@ function Counter({ value }: { value: string }) {
   return <span ref={ref}>{display || value}</span>;
 }
 
-export default function Site() {
+export default function SiteClient({ initialData }: { initialData: SiteData | null }) {
+  // Seeded with the build-time content (in the server HTML → SEO), then refreshed
+  // from the live API on mount so visitors see the latest admin edits even though
+  // the site is a static export.
+  const [data, setData] = useState<SiteData | null>(initialData);
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('kml_theme') === 'dark' ? 'dark' : 'light'));
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [scrolled, setScrolled] = useState(false);
-  const [data, setData] = useState<SiteData | null>(null);
   const [filter, setFilter] = useState('All');
   const [activeVideo, setActiveVideo] = useState<ActiveVideo | null>(null);
   const [form, setForm] = useState({ name: '', email: '', company: '', type: '', budget: '', message: '' });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState('');
-  const [dataReady, setDataReady] = useState(false);
   const [minElapsed, setMinElapsed] = useState(false);
   const [loaderGone, setLoaderGone] = useState(false);
-  // Remember the uploaded logo so the preloader (which renders before the API
-  // responds) can show the real brand mark instantly on repeat visits.
-  const [logoSrc, setLogoSrc] = useState<string | null>(() => localStorage.getItem('kml_logo'));
+  // Remember the uploaded logo so the preloader can show the real brand mark
+  // instantly on repeat visits. Read from storage after mount (SSR-safe).
+  const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const contactRef = useRef<HTMLElement>(null);
+
+  // Restore the visitor's saved theme + cached logo after hydration.
+  useEffect(() => {
+    if (localStorage.getItem('kml_theme') === 'dark') setTheme('dark');
+    const cached = localStorage.getItem('kml_logo');
+    if (cached) setLogoSrc(cached);
+  }, []);
+
+  // Pull the latest content from the live API (static export is baked at build).
+  useEffect(() => {
+    let alive = true;
+    fetch(`${API}/public/site`, { headers: { Accept: 'application/json' } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (alive && d) setData(d as SiteData); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -178,47 +176,27 @@ export default function Site() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Match the studio font chosen in admin Settings, and cache the logo for the
+  // next visit's preloader. The font is also set inline on the root (below) so
+  // there is no flash before this runs.
   useEffect(() => {
-    void axios
-      .get<SiteData>(`${API}/public/site`)
-      .then((res) => {
-        setData(res.data);
-        applyFont(res.data.font); // match the studio font chosen in admin Settings
-        if (res.data.logo_url) {
-          setLogoSrc(res.data.logo_url);
-          localStorage.setItem('kml_logo', res.data.logo_url); // cache for the next visit's preloader
-        } else {
-          localStorage.removeItem('kml_logo');
-        }
-      })
-      .finally(() => setDataReady(true)); // hide the loader even if the request fails (defaults kick in)
-  }, []);
-
-  // Keep the browser-tab favicon + title in sync with the studio's brand.
-  // Seed from the cached logo on first paint so the tab icon never flashes the
-  // default, then refresh once the live site data arrives.
-  useEffect(() => {
-    const url = data?.logo_url || localStorage.getItem('kml_logo');
-    if (url) {
-      let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
-      link.removeAttribute('type'); // let the browser infer png/svg/… from the file
-      link.href = url;
+    if (!data) return;
+    applyFont(data.font);
+    if (data.logo_url) {
+      setLogoSrc(data.logo_url);
+      localStorage.setItem('kml_logo', data.logo_url);
+    } else {
+      localStorage.removeItem('kml_logo');
     }
-    if (data?.studio_name) document.title = `${data.studio_name} — Video Production`;
-  }, [data?.logo_url, data?.studio_name]);
+  }, [data]);
 
   // Preloader timing: keep it on screen for at least a beat so it never flashes,
-  // then fade out once the site data has arrived, then drop it from the DOM.
+  // then fade out, then drop it from the DOM.
   useEffect(() => {
     const t = setTimeout(() => setMinElapsed(true), 900);
     return () => clearTimeout(t);
   }, []);
-  const loaderHidden = dataReady && minElapsed;
+  const loaderHidden = minElapsed;
   useEffect(() => {
     if (!loaderHidden) return;
     const t = setTimeout(() => setLoaderGone(true), 550);
@@ -229,8 +207,7 @@ export default function Site() {
     localStorage.setItem('kml_theme', theme);
   }, [theme]);
 
-  // Scroll-reveal: fade/rise elements in as they enter the viewport. Re-runs
-  // when `data` arrives so late-rendered sections (work rows, films) get wired.
+  // Scroll-reveal: fade/rise elements in as they enter the viewport.
   useEffect(() => {
     const els = Array.from(document.querySelectorAll<HTMLElement>('.reveal, .reveal-stagger'));
     if (!('IntersectionObserver' in window) || !els.length) {
@@ -308,7 +285,12 @@ export default function Site() {
     setSending(true);
     setSent('');
     try {
-      await axios.post(`${API}/public/inquiries`, form);
+      const res = await fetch(`${API}/public/inquiries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error('request failed');
       setSent('Message sent — we will get back to you shortly.');
       setForm({ name: '', email: '', company: '', type: '', budget: '', message: '' });
     } catch {
@@ -325,14 +307,17 @@ export default function Site() {
   const secPad = isMobile ? '64px 20px' : '96px 40px';
   const stack = (desktop: string) => (isMobile ? '1fr' : desktop);
 
+  // Set the studio font inline on the root so SSR and first paint already use it.
+  const rootStyle = { '--ui-font': fontStack(data?.font) } as CSSProperties;
 
   return (
-    <div className={`site-root${theme === 'dark' ? ' dark' : ''}`}>
+    <div className={`site-root${theme === 'dark' ? ' dark' : ''}`} style={rootStyle}>
       {/* PAGE PRELOADER */}
       {!loaderGone && (
         <div className={`kml-preloader${loaderHidden ? ' hide' : ''}`}>
           <div className="kml-preloader-inner">
             <div className="kml-spinner">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="kml-preload-logo" src={data?.logo_url || logoSrc || '/favicon.svg'} alt={data?.studio_name || 'KML Production'} />
             </div>
             <div className="kml-preload-bar">
@@ -464,9 +449,7 @@ export default function Site() {
             </>
           )}
         </video>
-        {/* Legibility scrim. Over a real video: darken only the left text column
-            and let the footage stay clear on the right. Over the gradient
-            fallback: keep the original even wash. */}
+        {/* Legibility scrim. */}
         <div
           style={{
             position: 'absolute',
@@ -555,6 +538,7 @@ export default function Site() {
             {[...clientList, ...clientList].map((c, i) =>
               c.logo ? (
                 <span key={i} style={{ display: 'inline-flex', alignItems: 'center', padding: '0 34px' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     className="client-logo"
                     src={c.logo}
@@ -588,7 +572,7 @@ export default function Site() {
               We are a full-service video production company dedicated to creating powerful visual stories. From concept development to post-production, our team combines creativity, strategy, and cutting-edge technology to produce high-quality content for brands, businesses, and creators.
             </p>
             <p style={{ fontSize: 17.5, lineHeight: 1.75, color: 'var(--smuted)', margin: '0 0 42px', maxWidth: 620 }}>
-              Whether it's a commercial, corporate film, social content, or documentary — we bring your story to life with cinematic precision.
+              Whether it&apos;s a commercial, corporate film, social content, or documentary — we bring your story to life with cinematic precision.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: '1px solid var(--sline-16)', borderLeft: '1px solid var(--sline-16)' }}>
               {['Creative Strategy', 'Professional Film Crew', 'High-End Equipment', 'End-to-End Production'].map((h) => (
@@ -721,7 +705,7 @@ export default function Site() {
           </div>
           {filtered.length > 6 && (
             <div className="reveal" style={{ display: 'flex', justifyContent: 'center', marginTop: isMobile ? 40 : 56 }}>
-              <Link to="/work" className="site-btn-outline" style={{ ...mono, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', textDecoration: 'none', color: 'var(--sink)', padding: '16px 40px', border: '1px solid var(--sline-25)', clipPath: 'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)' }}>
+              <Link href="/work" className="site-btn-outline" style={{ ...mono, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', textDecoration: 'none', color: 'var(--sink)', padding: '16px 40px', border: '1px solid var(--sline-25)', clipPath: 'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)' }}>
                 View all work →
               </Link>
             </div>
@@ -760,13 +744,13 @@ export default function Site() {
         <div className="reveal" style={{ maxWidth: 1100, margin: '0 auto', padding: isMobile ? '72px 20px' : '110px 40px', textAlign: 'center' }}>
           <div className="site-kicker" style={{ marginBottom: 34 }}>( What clients say )</div>
           <p style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 'clamp(24px,4vw,40px)', lineHeight: 1.25, letterSpacing: -1, margin: '0 0 36px' }}>
-            “{lead.q}”
+            &ldquo;{lead.q}&rdquo;
           </p>
           <div style={{ ...mono, fontSize: 12.5, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--smuted)' }}>{lead.a}{lead.r ? ` — ${lead.r}` : ''}</div>
           <div className="reveal-stagger" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'center' : 'flex-start', justifyContent: 'center', gap: 40, marginTop: 60, paddingTop: 44, borderTop: '1px solid var(--sline-12)' }}>
             {quoteList.map((t, i) => (
               <div key={i} className="quote-card" style={{ maxWidth: 280, textAlign: 'left' }}>
-                <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--smuted)', margin: '0 0 12px' }}>“{t.q}”</p>
+                <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--smuted)', margin: '0 0 12px' }}>&ldquo;{t.q}&rdquo;</p>
                 <div style={{ ...mono, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--sfaint)' }}>
                   {t.a}{t.r ? ` — ${t.r}` : ''}
                 </div>
@@ -802,8 +786,8 @@ export default function Site() {
       {/* CTA */}
       <section style={{ borderTop: '1px solid var(--sline-16)', padding: isMobile ? '48px 20px' : '80px 40px' }}>
         <div className="reveal reveal-scale cta-grad" style={{ maxWidth: 1360, margin: '0 auto', background: 'linear-gradient(115deg,#E86FA6,#8354C9 45%,#2B39B8)', clipPath: 'polygon(0 6%, 100% 0, 100% 94%, 0 100%)', padding: isMobile ? '64px 24px' : '110px 60px', textAlign: 'center', color: '#fff' }}>
-          <h2 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 'clamp(32px,6vw,64px)', letterSpacing: -2, textTransform: 'uppercase', lineHeight: 0.98, margin: '0 0 20px' }}>Let's create something amazing</h2>
-          <p style={{ fontSize: 18, margin: '0 0 40px', opacity: 0.92 }}>Have a project in mind? Let's bring your vision to life.</p>
+          <h2 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 'clamp(32px,6vw,64px)', letterSpacing: -2, textTransform: 'uppercase', lineHeight: 0.98, margin: '0 0 20px' }}>Let&apos;s create something amazing</h2>
+          <p style={{ fontSize: 18, margin: '0 0 40px', opacity: 0.92 }}>Have a project in mind? Let&apos;s bring your vision to life.</p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={scrollToContact} className="clip-btn-lg" style={{ padding: '17px 30px', background: 'var(--sink)', border: 'none', color: 'var(--sbg)', ...mono, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase' }}>
               Start Your Project
@@ -919,107 +903,107 @@ export default function Site() {
           <div className="kml-blob" aria-hidden style={{ width: 540, height: 540, right: '-11%', bottom: '-20%', background: 'radial-gradient(circle,rgba(43,57,184,.5),transparent 70%)', animationDelay: '-7s' }} />
 
           <div style={{ position: 'relative', zIndex: 2, maxWidth: 1360, margin: '0 auto', padding: isMobile ? '26px 20px 30px' : '44px 40px 40px' }}>
-          {/* Status pill */}
-          <div className="reveal" style={{ marginBottom: isMobile ? 26 : 40 }}>
-            <span className="foot-rec" style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: '#C9A8FF' }}>
-              Available for new projects — {new Date().getFullYear()}
-            </span>
-          </div>
-
-          {/* Columns */}
-          <div
-            className="reveal-stagger"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1.7fr 1fr 1fr 1.3fr',
-              gap: isMobile ? 34 : 48,
-              borderTop: '1px solid rgba(255,255,255,.12)',
-              paddingTop: isMobile ? 32 : 48,
-            }}
-          >
-            {/* Brand */}
-            <div>
-              <KLogoImg gradient size={40} src={data?.logo_url} />
-              <p style={{ margin: '18px 0 22px', maxWidth: 300, fontSize: 14, lineHeight: 1.7, color: '#B4B1C9' }}>
-                {data?.studio_name ?? 'KML Production'} — cinematic video production, from first concept to final cut.
-              </p>
-              <div style={{ display: 'flex', gap: 10 }}>
-                {socials.map(([so, key]) => {
-                  const href = data?.socials?.[key];
-                  return href ? (
-                    <a key={so} className="foot-soc" href={href} target="_blank" rel="noreferrer" aria-label={key} style={{ ...mono, fontSize: 11, fontWeight: 700 }}>
-                      <span>{socialIcons[key] ?? so}</span>
-                    </a>
-                  ) : (
-                    <span key={so} className="foot-soc foot-soc--off" style={{ ...mono, fontSize: 11, fontWeight: 700 }}>
-                      <span>{socialIcons[key] ?? so}</span>
-                    </span>
-                  );
-                })}
-              </div>
+            {/* Status pill */}
+            <div className="reveal" style={{ marginBottom: isMobile ? 26 : 40 }}>
+              <span className="foot-rec" style={{ ...mono, fontSize: 11.5, letterSpacing: 1.5, textTransform: 'uppercase', color: '#C9A8FF' }}>
+                Available for new projects — {new Date().getFullYear()}
+              </span>
             </div>
 
-            {/* Explore */}
-            <div>
-              <div style={{ ...mono, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: '#7C7A93', marginBottom: 18 }}>Explore</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 13, alignItems: 'flex-start' }}>
-                {navLinks.map(([l, h]) => (
-                  <a key={l} className="foot-link" href={h} style={{ fontSize: 14.5 }}>{l}</a>
-                ))}
-              </div>
-            </div>
-
-            {/* Services */}
-            <div>
-              <div style={{ ...mono, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: '#7C7A93', marginBottom: 18 }}>Services</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 13, alignItems: 'flex-start' }}>
-                {services.map((s) => (
-                  <a key={s.tag} className="foot-link" href="#services" style={{ fontSize: 14.5 }}>{s.tag}</a>
-                ))}
-              </div>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <div style={{ ...mono, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: '#7C7A93', marginBottom: 18 }}>Get in touch</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'flex-start' }}>
-                <a className="foot-link" href={`mailto:${data?.contact_email ?? 'hello@kmlproduction.com'}`} style={{ fontSize: 14.5 }}>
-                  {data?.contact_email ?? 'hello@kmlproduction.com'}
-                </a>
-                <a className="foot-link" href={`tel:${phone.replace(/[^\d+]/g, '')}`} style={{ fontSize: 14.5 }}>{phone}</a>
-                <div style={{ fontSize: 14, lineHeight: 1.6, color: '#B4B1C9', maxWidth: 220 }}>{address}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom bar */}
-          <div
-            className="reveal"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: 16,
-              marginTop: isMobile ? 34 : 54,
-              paddingTop: 24,
-              borderTop: '1px solid rgba(255,255,255,.1)',
-              ...mono,
-              fontSize: 11.5,
-              letterSpacing: 0.5,
-              color: '#7C7A93',
-            }}
-          >
-            <div>© {new Date().getFullYear()} {(data?.studio_name ?? 'KML Production').toUpperCase()}. All rights reserved.</div>
-            <a
-              href="#top"
-              onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-              className="foot-top"
-              style={{ ...mono, fontSize: 11.5, letterSpacing: 1, textTransform: 'uppercase', color: '#B4B1C9', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+            {/* Columns */}
+            <div
+              className="reveal-stagger"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1.7fr 1fr 1fr 1.3fr',
+                gap: isMobile ? 34 : 48,
+                borderTop: '1px solid rgba(255,255,255,.12)',
+                paddingTop: isMobile ? 32 : 48,
+              }}
             >
-              Back to top <span className="foot-top-arrow">↑</span>
-            </a>
-          </div>
+              {/* Brand */}
+              <div>
+                <KLogoImg gradient size={40} src={data?.logo_url} />
+                <p style={{ margin: '18px 0 22px', maxWidth: 300, fontSize: 14, lineHeight: 1.7, color: '#B4B1C9' }}>
+                  {data?.studio_name ?? 'KML Production'} — cinematic video production, from first concept to final cut.
+                </p>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {socials.map(([so, key]) => {
+                    const href = data?.socials?.[key];
+                    return href ? (
+                      <a key={so} className="foot-soc" href={href} target="_blank" rel="noreferrer" aria-label={key} style={{ ...mono, fontSize: 11, fontWeight: 700 }}>
+                        <span>{socialIcons[key] ?? so}</span>
+                      </a>
+                    ) : (
+                      <span key={so} className="foot-soc foot-soc--off" style={{ ...mono, fontSize: 11, fontWeight: 700 }}>
+                        <span>{socialIcons[key] ?? so}</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Explore */}
+              <div>
+                <div style={{ ...mono, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: '#7C7A93', marginBottom: 18 }}>Explore</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 13, alignItems: 'flex-start' }}>
+                  {navLinks.map(([l, h]) => (
+                    <a key={l} className="foot-link" href={h} style={{ fontSize: 14.5 }}>{l}</a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Services */}
+              <div>
+                <div style={{ ...mono, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: '#7C7A93', marginBottom: 18 }}>Services</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 13, alignItems: 'flex-start' }}>
+                  {services.map((s) => (
+                    <a key={s.tag} className="foot-link" href="#services" style={{ fontSize: 14.5 }}>{s.tag}</a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div>
+                <div style={{ ...mono, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: '#7C7A93', marginBottom: 18 }}>Get in touch</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'flex-start' }}>
+                  <a className="foot-link" href={`mailto:${data?.contact_email ?? 'hello@kmlproduction.com'}`} style={{ fontSize: 14.5 }}>
+                    {data?.contact_email ?? 'hello@kmlproduction.com'}
+                  </a>
+                  <a className="foot-link" href={`tel:${phone.replace(/[^\d+]/g, '')}`} style={{ fontSize: 14.5 }}>{phone}</a>
+                  <div style={{ fontSize: 14, lineHeight: 1.6, color: '#B4B1C9', maxWidth: 220 }}>{address}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom bar */}
+            <div
+              className="reveal"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 16,
+                marginTop: isMobile ? 34 : 54,
+                paddingTop: 24,
+                borderTop: '1px solid rgba(255,255,255,.1)',
+                ...mono,
+                fontSize: 11.5,
+                letterSpacing: 0.5,
+                color: '#7C7A93',
+              }}
+            >
+              <div>© {new Date().getFullYear()} {(data?.studio_name ?? 'KML Production').toUpperCase()}. All rights reserved.</div>
+              <a
+                href="#top"
+                onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className="foot-top"
+                style={{ ...mono, fontSize: 11.5, letterSpacing: 1, textTransform: 'uppercase', color: '#B4B1C9', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+              >
+                Back to top <span className="foot-top-arrow">↑</span>
+              </a>
+            </div>
           </div>
         </div>
       </footer>

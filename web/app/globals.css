@@ -1,0 +1,794 @@
+:root {
+  --bg: #F5F4FA;
+  --card: #ffffff;
+  --sidebar: #EFEDF7;
+  --ink: #17153A;
+  --ink-2: #55527A;
+  --ink-3: #8B88A6;
+  --border: rgba(23, 21, 58, 0.12);
+  --border-strong: rgba(23, 21, 58, 0.16);
+  --pink: #E86FA6;
+  --purple: #8354C9;
+  --blue: #2B39B8;
+  --green: #1B8A5A;
+  --amber: #B8791E;
+  --red: #C24A6E;
+  --grad: linear-gradient(115deg, #E86FA6, #8354C9 50%, #2B39B8);
+  --grad-steep: linear-gradient(150deg, #E86FA6, #8354C9 52%, #2B39B8);
+  --grad-av: linear-gradient(135deg, #E86FA6, #2B39B8);
+  /* Admin UI font — overridden at runtime from the Settings page. */
+  --ui-font: 'Manrope', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { min-height: 100vh; }
+html, body { overflow-x: hidden; max-width: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--ui-font);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+}
+
+::selection { background: #8354C9; color: #fff; }
+
+input, select, textarea, button { font-family: var(--ui-font); }
+button { cursor: pointer; }
+
+.kadmin-scroll::-webkit-scrollbar { width: 9px; height: 9px; }
+.kadmin-scroll::-webkit-scrollbar-thumb { background: rgba(23, 21, 58, 0.2); border-radius: 6px; }
+
+@keyframes kadfloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ---------- Public site (KML Production v2) ---------- */
+.site-root {
+  --sbg: #F7F6FB;
+  --sink: #17153A;
+  --smuted: #55527A;
+  --sfaint: #8B88A6;
+  --ssurface: #ffffff;
+  --ssurface-2: #F1EFF8;
+  --ssurface-3: #ECEAF4;
+  --sglass: rgba(255, 255, 255, 0.92);
+  --sbg-glass: rgba(247, 246, 251, 0.92);
+  --sline-08: rgba(23, 21, 58, 0.08);
+  --sline-1: rgba(23, 21, 58, 0.1);
+  --sline-12: rgba(23, 21, 58, 0.12);
+  --sline-14: rgba(23, 21, 58, 0.14);
+  --sline-16: rgba(23, 21, 58, 0.16);
+  --sline-2: rgba(23, 21, 58, 0.18);
+  --sline-25: rgba(23, 21, 58, 0.22);
+  --sline-3: rgba(23, 21, 58, 0.26);
+  min-height: 100vh;
+  background: var(--sbg);
+  color: var(--sink);
+  /* Follows the studio font chosen in admin Settings — applied uniformly
+     across the whole site, including headings and labels. */
+  font-family: var(--ui-font);
+}
+
+.site-root.dark {
+  --sbg: #0F0D1A;
+  --sink: #F5F3FA;
+  --smuted: #B4B1C9;
+  --sfaint: #85829B;
+  --ssurface: #181527;
+  --ssurface-2: #131020;
+  --ssurface-3: #251F38;
+  --sglass: rgba(24, 21, 39, 0.9);
+  --sbg-glass: rgba(15, 13, 26, 0.9);
+  --sline-08: rgba(255, 255, 255, 0.08);
+  --sline-1: rgba(255, 255, 255, 0.1);
+  --sline-12: rgba(255, 255, 255, 0.12);
+  --sline-14: rgba(255, 255, 255, 0.14);
+  --sline-16: rgba(255, 255, 255, 0.16);
+  --sline-2: rgba(255, 255, 255, 0.18);
+  --sline-25: rgba(255, 255, 255, 0.22);
+  --sline-3: rgba(255, 255, 255, 0.26);
+}
+
+@keyframes kmlticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes kmlfade { 0% { opacity: 0; } 4% { opacity: 1; } 30% { opacity: 1; } 36% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes kmlkb { 0% { transform: scale(1.06); } 36% { transform: scale(1.18); } 100% { transform: scale(1.18); } }
+@keyframes kmlbob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
+@keyframes kmlrise { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+@keyframes kmlscroll { 0% { transform: translateY(-6px); opacity: 0; } 40% { opacity: 1; } 100% { transform: translateY(20px); opacity: 0; } }
+
+/* ---------- Scroll reveal ---------- */
+/* Elements start hidden; the IntersectionObserver in Site.tsx adds `.in`
+   when they enter the viewport, triggering a soft rise-in. */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.8s cubic-bezier(0.16, 0.8, 0.24, 1),
+    transform 0.8s cubic-bezier(0.16, 0.8, 0.24, 1);
+  will-change: opacity, transform;
+}
+.reveal.in { opacity: 1; transform: none; }
+
+/* Children of a staggered container rise one after another. */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s cubic-bezier(0.16, 0.8, 0.24, 1),
+    transform 0.7s cubic-bezier(0.16, 0.8, 0.24, 1);
+  will-change: opacity, transform;
+}
+.reveal-stagger.in > * { opacity: 1; transform: none; }
+.reveal-stagger.in > *:nth-child(1) { transition-delay: 0.05s; }
+.reveal-stagger.in > *:nth-child(2) { transition-delay: 0.12s; }
+.reveal-stagger.in > *:nth-child(3) { transition-delay: 0.19s; }
+.reveal-stagger.in > *:nth-child(4) { transition-delay: 0.26s; }
+.reveal-stagger.in > *:nth-child(5) { transition-delay: 0.33s; }
+.reveal-stagger.in > *:nth-child(6) { transition-delay: 0.40s; }
+.reveal-stagger.in > *:nth-child(7) { transition-delay: 0.47s; }
+.reveal-stagger.in > *:nth-child(8) { transition-delay: 0.54s; }
+
+/* ---------- Hero entrance ---------- */
+.hero-in { opacity: 0; animation: kmlrise 0.9s cubic-bezier(0.16, 0.8, 0.24, 1) forwards; }
+.hero-in-1 { animation-delay: 0.15s; }
+.hero-in-2 { animation-delay: 0.30s; }
+.hero-in-3 { animation-delay: 0.45s; }
+.hero-in-4 { animation-delay: 0.60s; }
+
+/* ---------- Hover micro-interactions ---------- */
+.film-card { transition: transform 0.5s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.film-card .film-bg { transition: transform 0.7s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.film-card:hover { transform: translateY(-4px); }
+.film-card:hover .film-bg { transform: scale(1.06); }
+
+.clip-btn, .clip-btn-lg {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+.clip-btn:hover, .clip-btn-lg:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: 0 10px 30px rgba(131, 84, 201, 0.32);
+}
+.clip-btn:active, .clip-btn-lg:active { transform: translateY(0); }
+
+.site-nav a { position: relative; transition: color 0.2s; }
+.site-nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 1.5px;
+  width: 0;
+  background: linear-gradient(90deg, #E86FA6, #8354C9);
+  transition: width 0.28s cubic-bezier(0.16, 0.8, 0.24, 1);
+}
+.site-nav a:hover::after { width: 100%; }
+
+.work-row { transition: background 0.25s, transform 0.25s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.work-row:hover { transform: translateX(8px); }
+.work-row .work-thumb { transition: transform 0.5s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.work-row:hover .work-thumb { transform: scale(1.05); }
+
+/* Selected work — video grid cards */
+.work-card-media .work-thumb { transition: transform 0.6s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.work-card:hover .work-card-media .work-thumb { transform: scale(1.06); }
+.work-card:hover .work-card-overlay { background: linear-gradient(180deg, rgba(23,21,58,.15) 20%, rgba(23,21,58,.6)); }
+.work-card-play { transition: transform 0.35s cubic-bezier(0.16, 0.8, 0.24, 1), background 0.25s; }
+.work-card:hover .work-card-play { transform: scale(1.12); background: rgba(255,255,255,.24); }
+
+/* Directional reveal variants — swap the start transform. */
+.reveal-l { transform: translateX(-48px); }
+.reveal-r { transform: translateX(48px); }
+.reveal-scale { transform: scale(0.92); }
+.reveal-blur { filter: blur(14px); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 0.8, 0.24, 1), filter 0.8s ease; }
+.reveal-l.in, .reveal-r.in, .reveal-scale.in { transform: none; }
+.reveal-blur.in { filter: none; }
+
+/* ---------- Animated gradient text ---------- */
+@keyframes kmlgradmove { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+.grad-text-anim {
+  background-size: 200% auto;
+  animation: kmlgradmove 5s linear infinite;
+}
+@keyframes kmlbgshift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.cta-grad { background-size: 220% 220%; animation: kmlbgshift 9s ease infinite; }
+
+/* ---------- Animated footer ---------- */
+.footer-nav a {
+  position: relative;
+  transition: color 0.3s ease;
+}
+.footer-nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 100%;
+  height: 1.5px;
+  background: linear-gradient(90deg, #E86FA6, #2B39B8);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.16, 0.8, 0.24, 1);
+}
+.footer-nav a:hover { color: var(--sink); }
+.footer-nav a:hover::after { transform: scaleX(1); transform-origin: left; }
+.footer-top { transition: color 0.3s ease; }
+.footer-top:hover { color: var(--sink); }
+.footer-top:hover .footer-top-arrow { transform: translateY(-4px); }
+.footer-top-arrow { display: inline-block; transition: transform 0.3s ease; }
+
+/* ---------- Cinematic footer (dark) ---------- */
+.foot-sweep {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 3;
+  background: linear-gradient(90deg, transparent, #E86FA6, #8354C9, #2B39B8, transparent);
+  background-size: 200% 100%;
+  animation: kmlgradmove 6s linear infinite;
+}
+
+@keyframes kmlpulse {
+  0% { box-shadow: 0 0 0 0 rgba(232, 111, 166, 0.55); }
+  100% { box-shadow: 0 0 0 10px rgba(232, 111, 166, 0); }
+}
+.foot-rec { display: inline-flex; align-items: center; gap: 9px; }
+.foot-rec::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #E86FA6;
+  animation: kmlpulse 1.8s ease-out infinite;
+}
+
+.foot-link {
+  position: relative;
+  color: #B4B1C9;
+  text-decoration: none;
+  transition: color 0.3s ease, padding-left 0.3s ease;
+}
+.foot-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, #E86FA6, #2B39B8);
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: width 0.3s ease, opacity 0.3s ease;
+}
+.foot-link:hover { color: #fff; padding-left: 16px; }
+.foot-link:hover::before { width: 10px; opacity: 1; }
+
+.foot-soc {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #F4F3FA;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-decoration: none;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s ease, border-color 0.3s ease;
+}
+.foot-soc > span { position: relative; z-index: 1; }
+.foot-soc::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #E86FA6, #8354C9 55%, #2B39B8);
+  transform: translateY(101%);
+  transition: transform 0.35s ease;
+  z-index: 0;
+}
+.foot-soc:hover { transform: translateY(-4px); color: #fff; border-color: transparent; }
+.foot-soc:hover::before { transform: translateY(0); }
+.foot-soc--off { opacity: 0.35; pointer-events: none; }
+
+.foot-top { transition: color 0.3s ease; }
+.foot-top:hover { color: #fff; }
+.foot-top:hover .foot-top-arrow { transform: translateY(-4px); }
+.foot-top-arrow { display: inline-block; transition: transform 0.3s ease; }
+
+/* Animated wave transition rising from the page into the dark footer */
+.foot-waves-container {
+  position: relative;
+  width: 100%;
+  height: 72px;
+  margin-top: -72px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+.foot-waves {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 72px;
+}
+.foot-parallax > use {
+  animation: kmlwave 25s cubic-bezier(0.55, 0.5, 0.45, 0.5) infinite;
+}
+.foot-parallax > use:nth-child(1) { animation-delay: -2s; animation-duration: 8s; }
+.foot-parallax > use:nth-child(2) { animation-delay: -3s; animation-duration: 11s; }
+.foot-parallax > use:nth-child(3) { animation-delay: -4s; animation-duration: 14s; }
+.foot-parallax > use:nth-child(4) { animation-delay: -5s; animation-duration: 22s; }
+@keyframes kmlwave {
+  0% { transform: translate3d(-90px, 0, 0); }
+  100% { transform: translate3d(85px, 0, 0); }
+}
+@media (max-width: 768px) {
+  .foot-waves-container { height: 46px; margin-top: -46px; }
+  .foot-waves { height: 46px; }
+}
+
+/* ---------- Ambient floating blobs (dark sections) ---------- */
+@keyframes kmlblob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, -30px) scale(1.12); }
+  66% { transform: translate(-30px, 25px) scale(0.94); }
+}
+.kml-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  pointer-events: none;
+  will-change: transform;
+  animation: kmlblob 16s ease-in-out infinite;
+}
+
+/* ---------- Full-screen page preloader ---------- */
+.kml-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(900px 600px at 50% 45%, rgba(131, 84, 201, .28), transparent 65%),
+    #0C0A16;
+  transition: opacity .5s ease, visibility .5s ease;
+}
+.kml-preloader.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.kml-preloader-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+}
+.kml-spinner {
+  position: relative;
+  width: 108px;
+  height: 108px;
+  display: grid;
+  place-items: center;
+}
+/* Rotating gradient conic ring, masked to a thin band. */
+.kml-spinner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, #E86FA6 90deg, #8354C9 200deg, #2B39B8 300deg, transparent 360deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+  animation: kmlspin 1s linear infinite;
+}
+.kml-spinner::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(247, 246, 251, .10);
+}
+/* Keep the logo pinned dead-center inside the rotating ring. */
+.kml-preload-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 42px;
+  height: auto;
+  z-index: 1;
+  animation: kmlpreloadpulse 1.8s ease-in-out infinite;
+}
+@keyframes kmlpreloadpulse {
+  0%, 100% { opacity: .85; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+}
+@keyframes kmlspin { to { transform: rotate(360deg); } }
+.kml-preload-bar {
+  width: 180px;
+  height: 3px;
+  border-radius: 100px;
+  background: rgba(247, 246, 251, .12);
+  overflow: hidden;
+}
+.kml-preload-bar span {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: 100px;
+  background: linear-gradient(90deg, #E86FA6, #8354C9, #2B39B8);
+  animation: kmlpreloadbar 1.2s ease-in-out infinite;
+}
+@keyframes kmlpreloadbar {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
+.kml-preload-label {
+  font-family: var(--ui-font);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #B4B1C9;
+}
+
+/* ---------- Self-drawing process bar ---------- */
+.proc-bar-fill {
+  width: 0;
+  transition: width 1.4s cubic-bezier(0.16, 0.8, 0.24, 1) 0.2s;
+}
+.reveal.in .proc-bar-fill, .proc-bar-fill.in { width: 72%; }
+
+/* ---------- Button shine sweep ---------- */
+.clip-btn, .clip-btn-lg { position: relative; overflow: hidden; }
+.clip-btn::before, .clip-btn-lg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+.clip-btn:hover::before, .clip-btn-lg:hover::before { left: 140%; }
+
+/* ---------- Card tilt (JS sets --rx/--ry) ---------- */
+.tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--ty, 0));
+  transition: transform 0.25s cubic-bezier(0.16, 0.8, 0.24, 1);
+  transform-style: preserve-3d;
+}
+.tilt .film-bg { transition: transform 0.7s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.tilt:hover .film-bg { transform: scale(1.05); }
+
+/* ---------- Equipment / testimonial hover ---------- */
+.gear-pill { transition: transform 0.3s cubic-bezier(0.16, 0.8, 0.24, 1), border-color 0.3s, color 0.3s; }
+.gear-pill:hover { transform: translateY(-4px); border-color: #8354C9; color: #8354C9; }
+.quote-card { transition: transform 0.35s cubic-bezier(0.16, 0.8, 0.24, 1); }
+.quote-card:hover { transform: translateY(-6px); }
+
+/* ---------- Filter tab underline glide ---------- */
+.cat-tab { position: relative; transition: color 0.25s; }
+.cat-tab::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 0;
+  background: #8354C9;
+  transition: width 0.3s cubic-bezier(0.16, 0.8, 0.24, 1);
+}
+.cat-tab:hover::after { width: 100%; }
+
+/* Respect users who prefer no motion — reveal everything instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-stagger > *, .hero-in,
+  .reveal-l, .reveal-r, .reveal-scale, .reveal-blur {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+  .kml-blob, .grad-text-anim, .logo-slider-track, .proc-bar-fill,
+  .foot-sweep, .foot-rec::before, .foot-parallax > use { animation: none !important; }
+  .proc-bar-fill { width: 72%; }
+}
+
+.logo-slider {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.logo-slider-track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  animation: kmlticker 32s linear infinite;
+}
+.logo-slider:hover .logo-slider-track { animation-play-state: paused; }
+.client-logo {
+  filter: grayscale(1);
+  opacity: 0.6;
+  transition: filter 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+}
+.client-logo:hover { filter: grayscale(0); opacity: 1; transform: scale(1.06); }
+
+.site-nav {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 40px;
+  height: 96px;
+  border-bottom: 1px solid transparent;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  background: linear-gradient(180deg, rgba(8, 6, 14, 0.6), rgba(8, 6, 14, 0));
+  --navfg: #fff;
+  z-index: 8000;
+  transition: background 0.3s, border-color 0.3s, height 0.3s;
+}
+
+.site-nav.scrolled {
+  height: 80px;
+  background: var(--sbg-glass);
+  border-bottom-color: var(--sline-16);
+  backdrop-filter: blur(12px);
+  --navfg: var(--sink);
+}
+
+.site-mono {
+  font-family: var(--ui-font);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.site-h2 {
+  font-family: var(--ui-font);
+  font-weight: 700;
+  font-size: 54px;
+  letter-spacing: -1.8px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.site-kicker {
+  font-family: var(--ui-font);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #8354C9;
+}
+
+.clip-btn { clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%); }
+.clip-btn-lg { clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%); }
+
+.site-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1.5px solid var(--sline-3);
+  background: transparent;
+  padding: 10px 2px;
+  font-size: 15px;
+  color: var(--sink);
+  outline: none;
+  font-family: var(--ui-font);
+  border-radius: 0;
+}
+
+.site-input:focus { border-bottom-color: #8354C9; }
+.site-input::placeholder { color: var(--sfaint); }
+
+.work-row { border-bottom: 1px solid var(--sline-2); transition: background 0.2s; }
+.work-row:hover { background: var(--ssurface); }
+
+/* ---------- Typography helpers ---------- */
+.k-mono {
+  font-family: var(--ui-font);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.k-h {
+  font-family: var(--ui-font);
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ---------- Logo mark ---------- */
+.k-logo {
+  clip-path: polygon(0 0, 58% 0, 42% 46%, 100% 100%, 52% 100%, 42% 62%, 42% 100%, 0 100%);
+}
+
+/* ---------- Cards ---------- */
+.k-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+/* ---------- Inputs ---------- */
+.k-label {
+  display: block;
+  font-family: var(--ui-font);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+
+.k-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid rgba(23, 21, 58, 0.14);
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+}
+
+.k-input:focus { border-color: var(--purple); }
+.k-input::placeholder { color: var(--ink-3); }
+
+select.k-input { appearance: none; cursor: pointer; }
+
+/* ---------- Buttons ---------- */
+.k-btn-grad {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--grad);
+  border: none;
+  color: #fff;
+  font-family: var(--ui-font);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 4px;
+}
+
+.k-btn-grad:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.k-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #fff;
+  border: 1px solid rgba(23, 21, 58, 0.28);
+  color: var(--ink);
+  font-family: var(--ui-font);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 4px;
+}
+
+.k-icon-btn {
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(23, 21, 58, 0.14);
+  background: transparent;
+  font-size: 13px;
+  border-radius: 4px;
+  color: var(--ink);
+  padding: 0;
+}
+
+/* ---------- Pills ---------- */
+.k-pill {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---------- Sidebar nav ---------- */
+.k-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 12px 15px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  width: 100%;
+  border: none;
+  font-family: var(--ui-font);
+  color: var(--ink-2);
+  background: transparent;
+  border-radius: 0 8px 8px 0;
+}
+
+.k-nav-btn.active {
+  color: var(--ink);
+  background: #fff;
+  box-shadow: inset 3px 0 0 #8354C9, 0 1px 4px rgba(23, 21, 58, 0.08);
+}
+
+/* ---------- Toggle ---------- */
+.k-toggle {
+  width: 42px;
+  height: 24px;
+  border-radius: 100px;
+  padding: 3px;
+  cursor: pointer;
+  background: rgba(23, 21, 58, 0.18);
+  display: flex;
+  justify-content: flex-start;
+  border: none;
+}
+
+.k-toggle.on {
+  background: linear-gradient(115deg, #E86FA6, #2B39B8);
+  justify-content: flex-end;
+}
+
+.k-toggle .knob {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+/* ================================================================
+   RESPONSIVE — tablet
+   ================================================================ */
+@media (max-width: 1024px) {
+  .site-h2 { font-size: 40px; letter-spacing: -1px; }
+  .site-nav { padding: 0 24px; }
+}
+
+/* ================================================================
+   RESPONSIVE — mobile
+   ================================================================ */
+@media (max-width: 768px) {
+  body { font-size: 14px; }
+
+  .site-h2 { font-size: 30px; letter-spacing: -0.6px; }
+  .site-nav { padding: 0 18px; height: 80px; }
+  .site-nav.scrolled { height: 68px; }
+
+  /* Horizontal scroll container for wide admin tables. */
+  .k-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Mobile drawer scrim + panel for the admin sidebar. */
+  .k-drawer-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(23, 21, 58, 0.42);
+    backdrop-filter: blur(2px);
+  }
+}
+
+/* Slide-in animation for the mobile sidebar drawer. */
+@keyframes kdrawerin {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
