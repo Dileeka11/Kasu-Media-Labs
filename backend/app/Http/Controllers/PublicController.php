@@ -36,6 +36,17 @@ class PublicController extends Controller
             'clients' => $settings->clients,
             'testimonials' => $settings->testimonials,
             'ticker_items' => $settings->ticker_items,
+            'about_image_url' => $settings->about_image_url,
+            'about_kicker' => $settings->about_kicker,
+            'about_heading' => $settings->about_heading,
+            'about_body1' => $settings->about_body1,
+            'about_body2' => $settings->about_body2,
+            'about_features' => $settings->about_features,
+            'gear_image_url' => $settings->gear_image_url,
+            'gear_kicker' => $settings->gear_kicker,
+            'gear_heading' => $settings->gear_heading,
+            'gear_body' => $settings->gear_body,
+            'gear_items' => $settings->gear_items,
             'projects' => Project::with('category')
                 ->whereIn('status', $statuses)
                 ->orderByDesc('published_at')

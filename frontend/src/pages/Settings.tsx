@@ -18,7 +18,7 @@ export default function Settings() {
 
   // Live upload progress (0–100). `mediaPct` keys on the media field; `clientPct`
   // keys on the client row index. A key is present only while that upload runs.
-  const [mediaPct, setMediaPct] = useState<Partial<Record<'logo' | 'hero_video', number>>>({});
+  const [mediaPct, setMediaPct] = useState<Partial<Record<'logo' | 'hero_video' | 'about_image' | 'gear_image', number>>>({});
   const [clientPct, setClientPct] = useState<Record<number, number>>({});
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function Settings() {
     setBusy(false);
   };
 
-  const uploadMedia = async (field: 'logo' | 'hero_video', file: File) => {
+  const uploadMedia = async (field: 'logo' | 'hero_video' | 'about_image' | 'gear_image', file: File) => {
     const fd = new FormData();
     fd.append(field, file);
     setError('');
@@ -73,7 +73,7 @@ export default function Settings() {
     }
   };
 
-  const clearMedia = async (field: 'logo' | 'hero_video') => {
+  const clearMedia = async (field: 'logo' | 'hero_video' | 'about_image' | 'gear_image') => {
     setError('');
     try {
       const res = await api.post<SettingsData>('/settings/media/clear', { field });
@@ -116,6 +116,8 @@ export default function Settings() {
     { path: '/admin/settings', label: 'Profile & General', exact: true },
     { path: '/admin/settings/media', label: 'Brand & Media' },
     { path: '/admin/settings/hero', label: 'Hero & Ticker' },
+    { path: '/admin/settings/about', label: 'About Section' },
+    { path: '/admin/settings/gear', label: 'Gear Section' },
     { path: '/admin/settings/socials', label: 'Social Links' },
     { path: '/admin/settings/marketing', label: 'Marketing & Proof' },
   ];

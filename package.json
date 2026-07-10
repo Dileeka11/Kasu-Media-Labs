@@ -1,0 +1,12 @@
+{
+  "name": "kml-media-labs",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently -k -n api,admin,web -c magenta,cyan,green \"php backend/artisan serve\" \"npm --prefix frontend run dev:frontend\" \"npm --prefix web run dev\"",
+    "dev:all": "concurrently -n mysql,api,admin,web -c yellow,magenta,cyan,green \"C:/xampp/mysql/bin/mysqld.exe --defaults-file=C:/xampp/mysql/bin/my.ini --standalone --console\" \"php backend/artisan serve\" \"npm --prefix frontend run dev:frontend\" \"npm --prefix web run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}

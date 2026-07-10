@@ -5,7 +5,8 @@ import Link from 'next/link';
 import type { Project, SiteData } from '../lib/types';
 import { KLogoImg } from './ui';
 import { WorkCard, VideoModal, type ActiveVideo } from './work';
-import { applyFont, fontStack } from '../lib/font';
+import Cursor from './Cursor';
+import { applyFont, fontStack, preloadSavedFont } from '../lib/font';
 import { useIsMobile, useIsTablet } from '../lib/useMediaQuery';
 
 // The full "Selected work" archive — every project, reached from the home
@@ -22,6 +23,7 @@ export default function WorkClient({ initialData }: { initialData: SiteData | nu
 
   useEffect(() => {
     if (localStorage.getItem('kml_theme') === 'dark') setTheme('dark');
+    preloadSavedFont();
   }, []);
 
   // Refresh from the live API (static export is baked at build time).
@@ -70,6 +72,9 @@ export default function WorkClient({ initialData }: { initialData: SiteData | nu
 
   return (
     <div className={`site-root${theme === 'dark' ? ' dark' : ''}`} style={rootStyle}>
+      {/* SMOOTH CUSTOM CURSOR (desktop / fine-pointer only) */}
+      {!isMobile && <Cursor />}
+
       {/* Header — logo home link + back-to-home + theme toggle */}
       <nav className="site-nav scrolled">
         <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>

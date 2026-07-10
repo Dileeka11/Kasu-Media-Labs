@@ -24,6 +24,9 @@
 
 html, body, #root { min-height: 100vh; }
 html, body { overflow-x: hidden; max-width: 100%; }
+/* Smooth glide for in-page anchor links (nav → sections). */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 body {
   margin: 0;
@@ -46,6 +49,56 @@ button { cursor: pointer; }
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
+
+/* ---------- Smooth custom cursor ---------- */
+/* Only takes over once the JS confirms a fine pointer + activity, so touch
+   users and no-JS visitors keep the native cursor. Both layers are fixed,
+   compositor-promoted, and never intercept pointer events. */
+.cursor-ring,
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100000;
+  pointer-events: none;
+  border-radius: 50%;
+  opacity: 0;
+  will-change: transform;
+  transition: opacity 0.3s ease;
+}
+.cursor-dot {
+  width: 7px;
+  height: 7px;
+  background: linear-gradient(135deg, #E86FA6, #8354C9 55%, #2B39B8);
+  box-shadow: 0 0 10px rgba(131, 84, 201, 0.7);
+  /* Grow/shrink handled here so it stays smooth alongside the JS transform. */
+  transition: opacity 0.3s ease, width 0.25s ease, height 0.25s ease;
+}
+.cursor-ring {
+  width: 38px;
+  height: 38px;
+  border: 1.5px solid rgba(131, 84, 201, 0.55);
+  transition: opacity 0.3s ease, width 0.28s cubic-bezier(0.16, 0.8, 0.24, 1),
+    height 0.28s cubic-bezier(0.16, 0.8, 0.24, 1),
+    background 0.28s ease, border-color 0.28s ease;
+}
+/* Fade both layers in only while the pointer is on the page. */
+body.cursor-active .cursor-ring,
+body.cursor-active .cursor-dot { opacity: 1; }
+/* Hide the OS cursor once ours is driving. */
+body.has-custom-cursor,
+body.has-custom-cursor * { cursor: none !important; }
+
+/* Over interactive elements: the ring blooms into a soft disc and the dot tucks away. */
+.cursor-ring--hover {
+  width: 60px;
+  height: 60px;
+  background: rgba(131, 84, 201, 0.12);
+  border-color: rgba(232, 111, 166, 0.7);
+}
+.cursor-dot--hover { width: 0; height: 0; }
+/* Click feedback — the ring dips inward. */
+.cursor-ring--down { width: 30px; height: 30px; border-color: #E86FA6; }
 
 /* ---------- Public site (KML Production v2) ---------- */
 .site-root {
@@ -111,7 +164,9 @@ button { cursor: pointer; }
     transform 0.8s cubic-bezier(0.16, 0.8, 0.24, 1);
   will-change: opacity, transform;
 }
-.reveal.in { opacity: 1; transform: none; }
+/* Drop the layer promotion once revealed — keeps GPU memory from ballooning
+   when many elements have animated in. */
+.reveal.in { opacity: 1; transform: none; will-change: auto; }
 
 /* Children of a staggered container rise one after another. */
 .reveal-stagger > * {
@@ -121,7 +176,7 @@ button { cursor: pointer; }
     transform 0.7s cubic-bezier(0.16, 0.8, 0.24, 1);
   will-change: opacity, transform;
 }
-.reveal-stagger.in > * { opacity: 1; transform: none; }
+.reveal-stagger.in > * { opacity: 1; transform: none; will-change: auto; }
 .reveal-stagger.in > *:nth-child(1) { transition-delay: 0.05s; }
 .reveal-stagger.in > *:nth-child(2) { transition-delay: 0.12s; }
 .reveal-stagger.in > *:nth-child(3) { transition-delay: 0.19s; }
@@ -772,6 +827,10 @@ select.k-input { appearance: none; cursor: pointer; }
   .site-h2 { font-size: 30px; letter-spacing: -0.6px; }
   .site-nav { padding: 0 18px; height: 80px; }
   .site-nav.scrolled { height: 68px; }
+
+  /* Animating a 70px blur every frame is expensive on phones — hold the blobs
+     still so they stay decorative without the per-frame re-blur cost. */
+  .kml-blob { animation: none !important; }
 
   /* Horizontal scroll container for wide admin tables. */
   .k-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }

@@ -5,7 +5,8 @@ import Link from 'next/link';
 import type { Category, ClientItem, Project, Socials, SiteData } from '../lib/types';
 import { KLogoImg } from './ui';
 import { WorkCard, VideoModal, Placeholder, type ActiveVideo } from './work';
-import { applyFont, fontStack } from '../lib/font';
+import Cursor from './Cursor';
+import { applyFont, fontStack, preloadSavedFont } from '../lib/font';
 import { useIsMobile, useIsTablet } from '../lib/useMediaQuery';
 
 const API = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api') as string;
@@ -150,13 +151,19 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
   // Remember the uploaded logo so the preloader can show the real brand mark
   // instantly on repeat visits. Read from storage after mount (SSR-safe).
   const [logoSrc, setLogoSrc] = useState<string | null>(null);
+  // Defer the heavy autoplay background video: never on mobile (wasted bandwidth
+  // behind the scrim), and on desktop only once the browser is idle so it never
+  // competes with the first paint / critical content.
+  const [showHeroVideo, setShowHeroVideo] = useState(false);
   const contactRef = useRef<HTMLElement>(null);
 
-  // Restore the visitor's saved theme + cached logo after hydration.
+  // Restore the visitor's saved theme + cached logo after hydration, and start
+  // fetching the studio's last-known font before the API responds.
   useEffect(() => {
     if (localStorage.getItem('kml_theme') === 'dark') setTheme('dark');
     const cached = localStorage.getItem('kml_logo');
     if (cached) setLogoSrc(cached);
+    preloadSavedFont();
   }, []);
 
   // Pull the latest content from the live API (static export is baked at build).
@@ -168,6 +175,23 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
       .catch(() => {});
     return () => { alive = false; };
   }, []);
+
+  // Mount the hero background video only on desktop, and only once the browser
+  // is idle — so it never blocks or slows the initial page load.
+  useEffect(() => {
+    if (isMobile) return;
+    const w = window as typeof window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    let id: number;
+    if (w.requestIdleCallback) {
+      id = w.requestIdleCallback(() => setShowHeroVideo(true), { timeout: 2500 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+    id = window.setTimeout(() => setShowHeroVideo(true), 1200);
+    return () => clearTimeout(id);
+  }, [isMobile]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -253,6 +277,22 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
   const quoteList = data?.testimonials?.length ? data.testimonials.map((t) => ({ q: t.quote, a: t.author, r: t.role })) : defaultTestimonials;
   const lead = quoteList[0];
   const hasHeroVideo = !!data?.hero_video_url;
+  // About section — admin-managed, falling back to the original copy.
+  const aboutKicker = data?.about_kicker || 'About the studio';
+  const aboutHeading = data?.about_heading || 'Storytelling meets cinematic craft';
+  const aboutBody1 = data?.about_body1
+    || 'We are a full-service video production company dedicated to creating powerful visual stories. From concept development to post-production, our team combines creativity, strategy, and cutting-edge technology to produce high-quality content for brands, businesses, and creators.';
+  const aboutBody2 = data?.about_body2
+    || 'Whether it’s a commercial, corporate film, social content, or documentary — we bring your story to life with cinematic precision.';
+  const aboutFeatures = data?.about_features?.length
+    ? data.about_features
+    : ['Creative Strategy', 'Professional Film Crew', 'High-End Equipment', 'End-to-End Production'];
+  // Gear section — admin-managed, falling back to the original copy.
+  const gearKicker = data?.gear_kicker || 'The gear';
+  const gearHeading = data?.gear_heading || 'Professional gear. Professional results.';
+  const gearBody = data?.gear_body
+    || 'We shoot on cinema-grade equipment and light every frame with intent — so your story looks as premium as your brand.';
+  const gearItems = data?.gear_items?.length ? data.gear_items : equipment;
   const phone = data?.phone || '+1 (555) 019-2847';
   const address = data?.address || 'Bay 12, Riverside Media Park';
   const socials: [string, keyof Socials][] = [
@@ -312,6 +352,9 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
 
   return (
     <div className={`site-root${theme === 'dark' ? ' dark' : ''}`} style={rootStyle}>
+      {/* SMOOTH CUSTOM CURSOR (desktop / fine-pointer only) */}
+      {!isMobile && <Cursor />}
+
       {/* PAGE PRELOADER */}
       {!loaderGone && (
         <div className={`kml-preloader${loaderHidden ? ' hide' : ''}`}>
@@ -426,29 +469,32 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
           ))}
         </div>
         {/* Autoplay showreel background — uses the video uploaded in the admin
-            panel, then /hero.mp4, else the gradient above simply shows through. */}
-        <video
-          key={data?.hero_video_url ?? 'static'}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          poster={featured?.thumbnail_url ?? undefined}
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
-          }}
-          style={{ position: 'absolute', inset: 0, zIndex: 1, width: '100%', height: '100%', objectFit: 'cover', filter: 'contrast(1.08) saturate(1.12)' }}
-        >
-          {data?.hero_video_url ? (
-            <source src={data.hero_video_url} />
-          ) : (
-            <>
-              <source src="/hero.mp4" type="video/mp4" />
-              <source src="/hero.webm" type="video/webm" />
-            </>
-          )}
-        </video>
+            panel, then /hero.mp4, else the gradient above simply shows through.
+            Deferred to desktop + browser-idle so it never slows the first load. */}
+        {showHeroVideo && (
+          <video
+            key={data?.hero_video_url ?? 'static'}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster={featured?.thumbnail_url ?? undefined}
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+            style={{ position: 'absolute', inset: 0, zIndex: 1, width: '100%', height: '100%', objectFit: 'cover', filter: 'contrast(1.08) saturate(1.12)' }}
+          >
+            {data?.hero_video_url ? (
+              <source src={data.hero_video_url} />
+            ) : (
+              <>
+                <source src="/hero.mp4" type="video/mp4" />
+                <source src="/hero.webm" type="video/webm" />
+              </>
+            )}
+          </video>
+        )}
         {/* Legibility scrim. */}
         <div
           style={{
@@ -543,6 +589,8 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
                     className="client-logo"
                     src={c.logo}
                     alt={c.name || 'Client logo'}
+                    loading="lazy"
+                    decoding="async"
                     style={{ height: 40, maxWidth: 150, objectFit: 'contain', display: 'block' }}
                   />
                 </span>
@@ -559,23 +607,87 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
         </div>
       </section>
 
+      {/* WORK INDEX */}
+      <section id="work" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: isMobile ? 68 : 80 }}>
+        <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
+          <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 18, marginBottom: 20 }}>
+            <div>
+              <div className="site-kicker" style={{ marginBottom: 14 }}>( Selected work )</div>
+              <h2 className="site-h2">Our work speaks for itself</h2>
+            </div>
+            <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
+              {cats.map((c) => (
+                <button
+                  key={c}
+                  className="cat-tab"
+                  onClick={() => setFilter(c)}
+                  style={{
+                    padding: '8px 2px',
+                    cursor: 'pointer',
+                    ...mono,
+                    fontSize: 12.5,
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                    border: 'none',
+                    background: 'transparent',
+                    color: c === filter ? 'var(--sink)' : 'var(--sfaint)',
+                    fontWeight: c === filter ? 700 : 400,
+                    boxShadow: c === filter ? 'inset 0 -2px 0 #8354C9' : 'none',
+                  }}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div
+            className="reveal-stagger"
+            style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)', gap: isMobile ? 20 : 26, marginTop: 26 }}
+          >
+            {/* Home preview shows the first 6 only — the full archive lives at /work. */}
+            {filtered.slice(0, 6).map((p, i) => (
+              <WorkCard key={p.id} project={p} index={i} onOpen={openVideo} isMobile={isMobile} />
+            ))}
+            {filtered.length === 0 && <div style={{ gridColumn: '1 / -1', padding: '40px 0', color: 'var(--sfaint)', ...mono, fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase' }}>No projects in this category yet.</div>}
+          </div>
+          {filtered.length > 6 && (
+            <div className="reveal" style={{ display: 'flex', justifyContent: 'center', marginTop: isMobile ? 40 : 56 }}>
+              <Link href="/work" className="site-btn-outline" style={{ ...mono, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', textDecoration: 'none', color: 'var(--sink)', padding: '16px 40px', border: '1px solid var(--sline-25)', clipPath: 'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)' }}>
+                View all work →
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* ABOUT */}
       <section id="about" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: isMobile ? 68 : 80 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad, display: 'grid', gridTemplateColumns: stack('.9fr 1.4fr'), gap: isMobile ? 40 : 70 }}>
           <div className="reveal reveal-l">
-            <div className="site-kicker" style={{ marginBottom: 26 }}>( About the studio )</div>
-            <Placeholder label="Behind-the-scenes / crew on set" style={{ width: '100%', height: 420, clipPath: 'polygon(0 2%, 100% 0, 98% 98%, 3% 100%)' }} />
+            <div className="site-kicker" style={{ marginBottom: 26 }}>( {aboutKicker} )</div>
+            {data?.about_image_url ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={data.about_image_url}
+                alt={aboutHeading}
+                loading="lazy"
+                decoding="async"
+                style={{ width: '100%', height: 420, objectFit: 'cover', clipPath: 'polygon(0 2%, 100% 0, 98% 98%, 3% 100%)', display: 'block' }}
+              />
+            ) : (
+              <Placeholder label="Behind-the-scenes / crew on set" style={{ width: '100%', height: 420, clipPath: 'polygon(0 2%, 100% 0, 98% 98%, 3% 100%)' }} />
+            )}
           </div>
           <div className="reveal reveal-r" style={{ transitionDelay: '0.12s' }}>
-            <h2 className="site-h2" style={{ lineHeight: 1, margin: '0 0 30px' }}>Storytelling meets cinematic craft</h2>
+            <h2 className="site-h2" style={{ lineHeight: 1, margin: '0 0 30px' }}>{aboutHeading}</h2>
             <p style={{ fontSize: 17.5, lineHeight: 1.75, color: 'var(--smuted)', margin: '0 0 16px', maxWidth: 620 }}>
-              We are a full-service video production company dedicated to creating powerful visual stories. From concept development to post-production, our team combines creativity, strategy, and cutting-edge technology to produce high-quality content for brands, businesses, and creators.
+              {aboutBody1}
             </p>
             <p style={{ fontSize: 17.5, lineHeight: 1.75, color: 'var(--smuted)', margin: '0 0 42px', maxWidth: 620 }}>
-              Whether it&apos;s a commercial, corporate film, social content, or documentary — we bring your story to life with cinematic precision.
+              {aboutBody2}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: '1px solid var(--sline-16)', borderLeft: '1px solid var(--sline-16)' }}>
-              {['Creative Strategy', 'Professional Film Crew', 'High-End Equipment', 'End-to-End Production'].map((h) => (
+              {aboutFeatures.map((h) => (
                 <div key={h} style={{ padding: '20px 22px', borderRight: '1px solid var(--sline-16)', borderBottom: '1px solid var(--sline-16)', display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ width: 9, height: 9, background: 'linear-gradient(135deg,#E86FA6,#2B39B8)', clipPath: 'polygon(50% 0,100% 50%,50% 100%,0 50%)', flex: 'none' }} />
                   <span style={{ fontWeight: 700, fontSize: 15 }}>{h}</span>
@@ -660,59 +772,6 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
         </div>
       </section>
 
-      {/* WORK INDEX */}
-      <section id="work" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: isMobile ? 68 : 80 }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
-          <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 18, marginBottom: 20 }}>
-            <div>
-              <div className="site-kicker" style={{ marginBottom: 14 }}>( Selected work )</div>
-              <h2 className="site-h2">Our work speaks for itself</h2>
-            </div>
-            <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
-              {cats.map((c) => (
-                <button
-                  key={c}
-                  className="cat-tab"
-                  onClick={() => setFilter(c)}
-                  style={{
-                    padding: '8px 2px',
-                    cursor: 'pointer',
-                    ...mono,
-                    fontSize: 12.5,
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
-                    border: 'none',
-                    background: 'transparent',
-                    color: c === filter ? 'var(--sink)' : 'var(--sfaint)',
-                    fontWeight: c === filter ? 700 : 400,
-                    boxShadow: c === filter ? 'inset 0 -2px 0 #8354C9' : 'none',
-                  }}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div
-            className="reveal-stagger"
-            style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)', gap: isMobile ? 20 : 26, marginTop: 26 }}
-          >
-            {/* Home preview shows the first 6 only — the full archive lives at /work. */}
-            {filtered.slice(0, 6).map((p, i) => (
-              <WorkCard key={p.id} project={p} index={i} onOpen={openVideo} isMobile={isMobile} />
-            ))}
-            {filtered.length === 0 && <div style={{ gridColumn: '1 / -1', padding: '40px 0', color: 'var(--sfaint)', ...mono, fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase' }}>No projects in this category yet.</div>}
-          </div>
-          {filtered.length > 6 && (
-            <div className="reveal" style={{ display: 'flex', justifyContent: 'center', marginTop: isMobile ? 40 : 56 }}>
-              <Link href="/work" className="site-btn-outline" style={{ ...mono, fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', textDecoration: 'none', color: 'var(--sink)', padding: '16px 40px', border: '1px solid var(--sline-25)', clipPath: 'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)' }}>
-                View all work →
-              </Link>
-            </div>
-          )}
-        </div>
-      </section>
-
       {/* PROCESS */}
       <section id="process" style={{ position: 'relative', borderTop: '1px solid var(--sline-16)', background: '#17153A', color: '#F7F6FB', scrollMarginTop: isMobile ? 68 : 80, overflow: 'hidden' }}>
         <div className="kml-blob" style={{ top: '10%', right: '-5%', width: 360, height: 360, background: 'rgba(232,111,166,.35)' }} />
@@ -764,13 +823,13 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
       <section style={{ borderTop: '1px solid var(--sline-16)', background: 'var(--ssurface)' }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad, display: 'grid', gridTemplateColumns: stack('1.2fr 1fr'), gap: isMobile ? 40 : 70, alignItems: 'center' }}>
           <div className="reveal reveal-l">
-            <div className="site-kicker" style={{ marginBottom: 20 }}>( The gear )</div>
-            <h2 className="site-h2" style={{ fontSize: isMobile ? 30 : 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 22px' }}>Professional gear. Professional results.</h2>
+            <div className="site-kicker" style={{ marginBottom: 20 }}>( {gearKicker} )</div>
+            <h2 className="site-h2" style={{ fontSize: isMobile ? 30 : 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 22px' }}>{gearHeading}</h2>
             <p style={{ fontSize: 17, lineHeight: 1.7, color: 'var(--smuted)', margin: '0 0 36px', maxWidth: 520 }}>
-              We shoot on cinema-grade equipment and light every frame with intent — so your story looks as premium as your brand.
+              {gearBody}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-              {equipment.map((e) => (
+              {gearItems.map((e) => (
                 <span key={e} className="gear-pill" style={{ padding: '11px 18px', border: '1px solid var(--sline-25)', ...mono, fontSize: 12.5, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--sink)', clipPath: 'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)' }}>
                   {e}
                 </span>
@@ -778,7 +837,18 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
             </div>
           </div>
           <div className="reveal reveal-r" style={{ transitionDelay: '0.12s' }}>
-            <Placeholder label="Studio / camera rig photo" style={{ width: '100%', height: 400, clipPath: 'polygon(2% 0, 100% 2%, 98% 100%, 0 97%)' }} />
+            {data?.gear_image_url ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={data.gear_image_url}
+                alt={gearHeading}
+                loading="lazy"
+                decoding="async"
+                style={{ width: '100%', height: 400, objectFit: 'cover', clipPath: 'polygon(2% 0, 100% 2%, 98% 100%, 0 97%)', display: 'block' }}
+              />
+            ) : (
+              <Placeholder label="Studio / camera rig photo" style={{ width: '100%', height: 400, clipPath: 'polygon(2% 0, 100% 2%, 98% 100%, 0 97%)' }} />
+            )}
           </div>
         </div>
       </section>
@@ -851,13 +921,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
               </div>
               <div style={{ gridColumn: 'span 2' }}>
                 <label className="k-label" style={{ marginBottom: 10, color: 'var(--sfaint)' }}>Budget Range</label>
-                <select className="site-input" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} style={{ color: form.budget ? 'var(--sink)' : 'var(--sfaint)' }}>
-                  <option value="">Select a range</option>
-                  <option>$5k–10k</option>
-                  <option>$10k–25k</option>
-                  <option>$25k–50k</option>
-                  <option>$50k+</option>
-                </select>
+                <input className="site-input" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} placeholder="e.g. $5k–10k" />
               </div>
               <div style={{ gridColumn: 'span 2' }}>
                 <label className="k-label" style={{ marginBottom: 10, color: 'var(--sfaint)' }}>Message</label>

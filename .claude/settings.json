@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm install)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:8000/api/public/site\" -Headers @{Accept=\"application/json\"} -UseBasicParsing -TimeoutSec 8; \"STATUS: $\\($r.StatusCode\\)\"; $r.Content.Substring\\(0,[Math]::Min\\(400,$r.Content.Length\\)\\) } catch { \"REQUEST FAILED: $\\($_.Exception.Message\\)\" })",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1; if \\($c\\) { $p = Get-Process -Id $c.OwningProcess; \"PID $\\($p.Id\\): $\\($p.ProcessName\\) | $\\($p.Path\\)\"; \"CmdLine: \" + \\(Get-CimInstance Win32_Process -Filter \"ProcessId=$\\($p.Id\\)\"\\).CommandLine } else { \"Nothing listening on 8000\" })",
+      "PowerShell(Stop-Process -Id 34320 -Force)",
+      "PowerShell(\"killed old php server\")",
+      "PowerShell(Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { $p = Get-Process -Id $_.OwningProcess; \"PID $\\($p.Id\\): $\\($p.ProcessName\\) | \" + \\(Get-CimInstance Win32_Process -Filter \"ProcessId=$\\($p.Id\\)\"\\).CommandLine })",
+      "Bash(grep -rln \"Resource not found\" \"d:/My Projects/Kasu Media Labs/backend/vendor\" 2>&1 | head; echo \"---\"; cat /tmp/artisan.log 2>&1 | head -20)",
+      "Read(//tmp/**)",
+      "Bash(echo \"EXIT: $?\")",
+      "PowerShell(Get-Process node -ErrorAction SilentlyContinue)",
+      "Bash(ls -R src/pages/settings)",
+      "Bash(ls src/pages/Settings*)",
+      "Bash(rm -rf out .next)",
+      "Bash(API_URL=\"https://kasu-media-labs.codeplaystudios.com/api\" NEXT_PUBLIC_API_URL=\"https://kasu-media-labs.codeplaystudios.com/api\" NEXT_PUBLIC_SITE_URL=\"https://kasu-media-labs.codeplaystudios.com\" npm run build)",
+      "Bash(cp -a 'd:/My Projects/Kasu Media Labs/web/out/.' C:/Users/ASUS/AppData/Local/Temp/claude/d--My-Projects-Kasu-Media-Labs/2b02ba7a-3ad3-439d-93b2-7c2c8aa368b1/scratchpad/deploy/)",
+      "Bash(cp -a 'd:/My Projects/Kasu Media Labs/frontend/dist/.' C:/Users/ASUS/AppData/Local/Temp/claude/d--My-Projects-Kasu-Media-Labs/2b02ba7a-3ad3-439d-93b2-7c2c8aa368b1/scratchpad/deploy/admin/)",
+      "Bash(cp -a 'd:/My Projects/Kasu Media Labs/backend/.' C:/Users/ASUS/AppData/Local/Temp/claude/d--My-Projects-Kasu-Media-Labs/2b02ba7a-3ad3-439d-93b2-7c2c8aa368b1/scratchpad/deploy/api/)",
+      "Bash(cp -f C:/Users/ASUS/AppData/Local/Temp/claude/d--My-Projects-Kasu-Media-Labs/2b02ba7a-3ad3-439d-93b2-7c2c8aa368b1/scratchpad/api.htaccess C:/Users/ASUS/AppData/Local/Temp/claude/d--My-Projects-Kasu-Media-Labs/2b02ba7a-3ad3-439d-93b2-7c2c8aa368b1/scratchpad/deploy/api/.htaccess)",
+      "Bash(C:/xampp/mysql/bin/mysql.exe -uroot -e 'SELECT 1;')",
+      "Bash(C:/xampp/mysql/bin/mysqldump.exe -uroot --databases kml_admin --no-create-db --add-drop-table --default-character-set=utf8mb4 --ignore-table=kml_admin.sessions --ignore-table=kml_admin.cache --ignore-table=kml_admin.cache_locks --ignore-table=kml_admin.personal_access_tokens)",
+      "Bash(echo \"dump exit: $?\")",
+      "Bash(C:/xampp/mysql/bin/mysqldump.exe -uroot --no-create-db --add-drop-table --default-character-set=utf8mb4 kml_admin)",
+      "Bash(awk '{print $5}')",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('projects:',len\\(d.get\\('projects',[]\\)\\) if isinstance\\(d.get\\('projects'\\),list\\) else d.get\\('projects'\\)\\); print\\('categories:',len\\(d.get\\('categories',[]\\)\\) if isinstance\\(d.get\\('categories'\\),list\\) else 'n/a'\\); print\\('keys:',list\\(d.keys\\(\\)\\)\\)\")",
+      "Bash(export MSYS_NO_PATHCONV=1)",
+      "Bash(python -c ' *)",
+      "Bash(C:/xampp/mysql/bin/mysql.exe -uroot -e 'SELECT status, COUNT\\(*\\) FROM kml_admin.projects GROUP BY status;')",
+      "Bash(C:/xampp/mysql/bin/mysql.exe -uroot -e 'SELECT COUNT\\(*\\) AS categories FROM kml_admin.categories;')",
+      "Bash(C:/xampp/mysql/bin/mysqldump.exe -uroot --no-create-info --complete-insert --skip-extended-insert --default-character-set=utf8mb4 kml_admin categories projects)",
+      "Bash(grep -o 'INSERT INTO `[a-z_]*`' 'D:/My Projects/kml-projects-only.sql')",
+      "Bash(awk '{print $5, $NF}')",
+      "Bash(node -e \"console.log\\('node',process.version\\)\")",
+      "Read(//c/Program Files/Google/Chrome/Application/**)"
+    ]
+  }
+}

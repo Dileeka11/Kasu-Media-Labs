@@ -72,6 +72,21 @@ class SettingController extends Controller
             // Ticker (scrolling services strip)
             'ticker_items' => ['sometimes', 'nullable', 'array', 'max:20'],
             'ticker_items.*' => ['required', 'string', 'max:60'],
+
+            // About the studio
+            'about_kicker' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'about_heading' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'about_body1' => ['sometimes', 'nullable', 'string', 'max:1500'],
+            'about_body2' => ['sometimes', 'nullable', 'string', 'max:1500'],
+            'about_features' => ['sometimes', 'nullable', 'array', 'max:8'],
+            'about_features.*' => ['required', 'string', 'max:80'],
+
+            // The gear
+            'gear_kicker' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'gear_heading' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'gear_body' => ['sometimes', 'nullable', 'string', 'max:1500'],
+            'gear_items' => ['sometimes', 'nullable', 'array', 'max:12'],
+            'gear_items.*' => ['required', 'string', 'max:80'],
         ]);
 
         $setting = Setting::instance();
@@ -89,18 +104,20 @@ class SettingController extends Controller
         $request->validate([
             'logo' => ['sometimes', 'image', 'max:4096'],
             'hero_video' => ['sometimes', 'mimetypes:video/mp4,video/webm,video/quicktime', 'max:51200'],
+            'about_image' => ['sometimes', 'image', 'max:8192'],
+            'gear_image' => ['sometimes', 'image', 'max:8192'],
         ]);
 
         $setting = Setting::instance();
 
-        foreach (['logo', 'hero_video'] as $field) {
+        $folders = ['logo' => 'branding', 'hero_video' => 'hero', 'about_image' => 'about', 'gear_image' => 'gear'];
+        foreach ($folders as $field => $folder) {
             if (! $request->hasFile($field)) {
                 continue;
             }
             if ($setting->{$field}) {
                 Storage::disk('public')->delete($setting->{$field});
             }
-            $folder = $field === 'logo' ? 'branding' : 'hero';
             $setting->{$field} = $request->file($field)->store($folder, 'public');
         }
 
@@ -138,7 +155,7 @@ class SettingController extends Controller
     public function clearMedia(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'field' => ['required', Rule::in(['logo', 'hero_video'])],
+            'field' => ['required', Rule::in(['logo', 'hero_video', 'about_image', 'gear_image'])],
         ]);
 
         $setting = Setting::instance();

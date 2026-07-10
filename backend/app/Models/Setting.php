@@ -10,9 +10,11 @@ class Setting extends Model
         'studio_name', 'contact_email', 'font', 'ticker_font', 'email_on_inquiries', 'auto_publish', 'show_drafts',
         'logo', 'hero_video', 'showreel_url', 'hero_kicker', 'hero_headline', 'hero_subheadline',
         'phone', 'address', 'socials', 'stats', 'clients', 'testimonials', 'ticker_items',
+        'about_image', 'about_kicker', 'about_heading', 'about_body1', 'about_body2', 'about_features',
+        'gear_image', 'gear_kicker', 'gear_heading', 'gear_body', 'gear_items',
     ];
 
-    protected $appends = ['logo_url', 'hero_video_url'];
+    protected $appends = ['logo_url', 'hero_video_url', 'about_image_url', 'gear_image_url'];
 
     protected function casts(): array
     {
@@ -25,6 +27,8 @@ class Setting extends Model
             'clients' => 'array',
             'testimonials' => 'array',
             'ticker_items' => 'array',
+            'about_features' => 'array',
+            'gear_items' => 'array',
         ];
     }
 
@@ -36,6 +40,16 @@ class Setting extends Model
     public function getHeroVideoUrlAttribute(): ?string
     {
         return $this->hero_video ? asset('storage/'.$this->hero_video) : null;
+    }
+
+    public function getAboutImageUrlAttribute(): ?string
+    {
+        return $this->about_image ? asset('storage/'.$this->about_image) : null;
+    }
+
+    public function getGearImageUrlAttribute(): ?string
+    {
+        return $this->gear_image ? asset('storage/'.$this->gear_image) : null;
     }
 
     public static function instance(): self

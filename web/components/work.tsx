@@ -60,7 +60,16 @@ export function WorkCard({ project: p, index, onOpen, isMobile }: { project: Pro
     <div className="work-card" onClick={() => onOpen(p)} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div className="work-card-media" style={{ position: 'relative', aspectRatio: '16 / 9', overflow: 'hidden', clipPath: 'polygon(0 3%, 100% 0, 100% 97%, 0 100%)' }}>
         {p.thumbnail_url ? (
-          <div className="work-thumb" style={{ position: 'absolute', inset: 0, background: `url(${p.thumbnail_url}) center/cover no-repeat` }} />
+          /* Native lazy-loading: offscreen cards don't download until scrolled near. */
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            className="work-thumb"
+            src={p.thumbnail_url}
+            alt={p.title}
+            loading="lazy"
+            decoding="async"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
         ) : (
           <Placeholder label={p.category?.name ?? ''} style={{ position: 'absolute', inset: 0 }} />
         )}

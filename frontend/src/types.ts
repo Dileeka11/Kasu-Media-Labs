@@ -97,6 +97,17 @@ export interface Settings {
   testimonials: Testimonial[] | null;
   ticker_items: string[] | null;
   ticker_font: string | null;
+  about_image_url: string | null;
+  about_kicker: string | null;
+  about_heading: string | null;
+  about_body1: string | null;
+  about_body2: string | null;
+  about_features: string[] | null;
+  gear_image_url: string | null;
+  gear_kicker: string | null;
+  gear_heading: string | null;
+  gear_body: string | null;
+  gear_items: string[] | null;
 }
 
 export interface DashboardData {

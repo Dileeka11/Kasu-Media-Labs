@@ -11,6 +11,8 @@ import Settings from './pages/Settings';
 import SettingsProfile from './pages/settings/SettingsProfile';
 import SettingsMedia from './pages/settings/SettingsMedia';
 import SettingsHero from './pages/settings/SettingsHero';
+import SettingsAbout from './pages/settings/SettingsAbout';
+import SettingsGear from './pages/settings/SettingsGear';
 import SettingsSocials from './pages/settings/SettingsSocials';
 import SettingsMarketing from './pages/settings/SettingsMarketing';
 
@@ -39,6 +41,8 @@ export default function App() {
               <Route index element={<SettingsProfile />} />
               <Route path="media" element={<SettingsMedia />} />
               <Route path="hero" element={<SettingsHero />} />
+              <Route path="about" element={<SettingsAbout />} />
+              <Route path="gear" element={<SettingsGear />} />
               <Route path="socials" element={<SettingsSocials />} />
               <Route path="marketing" element={<SettingsMarketing />} />
             </Route>
