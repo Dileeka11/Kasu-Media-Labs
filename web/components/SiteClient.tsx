@@ -5,7 +5,6 @@ import Link from 'next/link';
 import type { Category, ClientItem, Project, Socials, SiteData } from '../lib/types';
 import { KLogoImg } from './ui';
 import { WorkCard, VideoModal, Placeholder, type ActiveVideo } from './work';
-import Cursor from './Cursor';
 import { applyFont, fontStack, preloadSavedFont } from '../lib/font';
 import { useIsMobile, useIsTablet } from '../lib/useMediaQuery';
 
@@ -20,11 +19,11 @@ const services = [
 ];
 
 const processSteps = [
-  { n: '01', tc: '00:00', t: 'Discover', d: 'We understand your brand, goals, and audience.' },
-  { n: '02', tc: '00:12', t: 'Plan', d: 'We develop the concept, script, and production plan.' },
-  { n: '03', tc: '00:24', t: 'Produce', d: 'Professional filming using cinema-grade equipment.' },
-  { n: '04', tc: '00:38', t: 'Edit', d: 'Editing, color grading, motion graphics, sound design.' },
-  { n: '05', tc: '00:52', t: 'Deliver', d: 'Final optimized videos ready for every platform.' },
+  { n: '01', tc: '00:00', t: 'Discover & Strategize', d: 'Understanding your vision, objectives, audience, and creative direction.' },
+  { n: '02', tc: '00:12', t: 'Concept & Creative Development', d: 'Building the story, visual language, and production approach.' },
+  { n: '03', tc: '00:24', t: 'Production & Execution', d: 'Bringing ideas to life through expert direction, technology, and craftsmanship.' },
+  { n: '04', tc: '00:38', t: 'Post-Production & Refinement', d: 'Enhancing every detail through editing, visual effects, sound design, and finishing.' },
+  { n: '05', tc: '00:52', t: 'Delivery & Impact', d: 'Creating content and experiences designed to engage audiences and elevate brands.' },
 ];
 
 // Fallbacks used only until the studio fills these in from the admin panel.
@@ -46,6 +45,15 @@ const objectives = [
   { n: '04', t: 'Innovate with Technology', d: 'Use the latest cameras, drones, editing tools, and visual effects to elevate quality.' },
   { n: '05', t: 'Build Long-Term Relationships', d: 'Establish trusted partnerships with brands, agencies, and organizations.' },
   { n: '06', t: 'Create Engaging Digital Content', d: 'Videos optimized for social media, marketing campaigns, and digital platforms.' },
+];
+
+const commitments = [
+  { n: '01', t: 'Create Exceptional Visual Experiences', d: 'To deliver cinematic productions and immersive experiences that reflect creativity, precision, and international standards of excellence.' },
+  { n: '02', t: 'Transform Ideas into Powerful Stories', d: 'To help brands communicate their vision through compelling narratives that connect emotionally with audiences and create meaningful impact.' },
+  { n: '03', t: 'Deliver Integrated Creative Solutions', d: 'To provide a seamless creative journey from concept development and strategic direction to production, post-production, and final execution.' },
+  { n: '04', t: 'Embrace Innovation & Creative Technology', d: 'To continuously explore emerging technologies, advanced production techniques, and innovative approaches that redefine visual storytelling.' },
+  { n: '05', t: 'Build Lasting Creative Partnerships', d: 'To collaborate with brands, agencies, and organizations through trust, creativity, and a shared commitment to excellence.' },
+  { n: '06', t: 'Create Content That Inspires & Performs', d: 'To develop impactful visual experiences across film, digital platforms, campaigns, events, and brand communications.' },
 ];
 
 const equipment = ['Cinema Cameras', 'Professional Lighting', 'Aerial Drones', 'Gimbal Stabilizers', 'Sound Equipment', 'Full Studio Setup'];
@@ -289,9 +297,9 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
     : ['Creative Strategy', 'Professional Film Crew', 'High-End Equipment', 'End-to-End Production'];
   // Gear section — admin-managed, falling back to the original copy.
   const gearKicker = data?.gear_kicker || 'The gear';
-  const gearHeading = data?.gear_heading || 'Professional gear. Professional results.';
+  const gearHeading = data?.gear_heading || 'Precision Behind Every Frame.';
   const gearBody = data?.gear_body
-    || 'We shoot on cinema-grade equipment and light every frame with intent — so your story looks as premium as your brand.';
+    || 'From cinema-grade equipment to thoughtful lighting and meticulous execution, we create visuals crafted to match the excellence of the brands we represent.';
   const gearItems = data?.gear_items?.length ? data.gear_items : equipment;
   const phone = data?.phone || '+1 (555) 019-2847';
   const address = data?.address || 'Bay 12, Riverside Media Park';
@@ -352,9 +360,6 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
 
   return (
     <div className={`site-root${theme === 'dark' ? ' dark' : ''}`} style={rootStyle}>
-      {/* SMOOTH CUSTOM CURSOR (desktop / fine-pointer only) */}
-      {!isMobile && <Cursor />}
-
       {/* PAGE PRELOADER */}
       {!loaderGone && (
         <div className={`kml-preloader${loaderHidden ? ' hide' : ''}`}>
@@ -576,8 +581,8 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
       {/* CLIENTS */}
       <section style={{ maxWidth: 1360, margin: '0 auto', padding: isMobile ? '48px 20px' : '56px 40px 60px' }}>
         <div className="reveal" style={{ textAlign: 'center', marginBottom: 30 }}>
-          <div className="site-kicker" style={{ marginBottom: 12 }}>( Trusted by brands &amp; creators )</div>
-          <h2 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 30, letterSpacing: -1, margin: 0 }}>Trusted by brands &amp; creators</h2>
+          <h2 style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 30, letterSpacing: -1, margin: 0 }}>Trusted by Visionaries. Chosen by Leading Brands.</h2>
+          <p style={{ maxWidth: 640, margin: '14px auto 0', opacity: 0.7, fontSize: 16, lineHeight: 1.6 }}>Transforming visionary ideas into compelling stories and unforgettable brand experiences, leaving a lasting legacy.</p>
         </div>
         <div className="logo-slider">
           <div className="logo-slider-track">
@@ -611,9 +616,11 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
       <section id="work" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: isMobile ? 68 : 80 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 18, marginBottom: 20 }}>
-            <div>
+            <div style={{ maxWidth: 620 }}>
               <div className="site-kicker" style={{ marginBottom: 14 }}>( Selected work )</div>
-              <h2 className="site-h2">Our work speaks for itself</h2>
+              <h2 className="site-h2">Creative Journeys That Define Us</h2>
+              <p style={{ margin: '18px 0 0', opacity: 0.75, fontSize: 16, lineHeight: 1.65 }}>At KML, we believe every great brand deserves an extraordinary story. Through strategic creativity, cinematic execution, and meticulous craftsmanship, we transform ideas into impactful experiences that connect with audiences and stand the test of time.</p>
+              <p style={{ margin: '14px 0 0', opacity: 0.75, fontSize: 16, lineHeight: 1.65 }}>Whether it’s a commercial, corporate film, digital content, documentary, exclusive creative content; we bring your story to life with cinematic precision, driven purpose.</p>
             </div>
             <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
               {cats.map((c) => (
@@ -745,6 +752,27 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
         </div>
       </section>
 
+      {/* OUR COMMITMENT */}
+      <section style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: isMobile ? 68 : 80 }}>
+        <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
+          <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 16, marginBottom: 60 }}>
+            <div className="site-kicker">( What we stand for )</div>
+            <h2 className="site-h2">Our commitment</h2>
+          </div>
+          <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: stack('repeat(3,1fr)') }}>
+            {commitments.map((c) => (
+              <div key={c.n} style={{ borderTop: '1px solid var(--sline-16)', borderLeft: '1px solid var(--sline-16)', padding: '30px 30px 34px' }}>
+                <div style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, fontSize: 40, lineHeight: 1, letterSpacing: -1, background: 'linear-gradient(120deg,#E86FA6,#8354C9 55%,#2B39B8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', marginBottom: 16 }}>
+                  {c.n}
+                </div>
+                <h3 style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 20, letterSpacing: -0.3, margin: '0 0 12px' }}>{c.t}</h3>
+                <p style={{ fontSize: 14.5, lineHeight: 1.6, color: 'var(--smuted)', margin: 0 }}>{c.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* SERVICES */}
       <section id="services" style={{ borderTop: '1px solid var(--sline-16)', background: 'var(--ssurface)', scrollMarginTop: isMobile ? 68 : 80 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
@@ -777,9 +805,14 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
         <div className="kml-blob" style={{ top: '10%', right: '-5%', width: 360, height: 360, background: 'rgba(232,111,166,.35)' }} />
         <div className="kml-blob" style={{ bottom: '-10%', left: '-4%', width: 400, height: 400, background: 'rgba(131,84,201,.4)', animationDelay: '-8s' }} />
         <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: secPad }}>
-          <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 70, flexWrap: 'wrap', gap: 16 }}>
-            <div className="site-kicker" style={{ color: '#E86FA6' }}>( How we work )</div>
-            <h2 className="site-h2">Our production process</h2>
+          <div className="reveal" style={{ marginBottom: 40 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 16 }}>
+              <div className="site-kicker" style={{ color: '#E86FA6' }}>( How we work )</div>
+              <h2 className="site-h2">The Making of Extraordinary Experiences</h2>
+            </div>
+            <p style={{ fontSize: 17.5, lineHeight: 1.7, color: '#B4B1C9', margin: '26px 0 0', maxWidth: 760, marginLeft: 'auto' }}>
+              <strong style={{ color: '#F7F6FB' }}>Where Vision Meets Execution.</strong> Every exceptional story begins with an idea. Our collaborative process combines strategy, creativity, technology, and precision to transform concepts into cinematic productions and unforgettable brand experiences.
+            </p>
           </div>
           <div className="reveal" style={{ position: 'relative', height: 4, background: 'rgba(247,246,251,.14)', marginBottom: 40 }}>
             <div className="proc-bar-fill" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, background: 'linear-gradient(90deg,#E86FA6,#8354C9,#2B39B8)' }} />
@@ -874,7 +907,8 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad, display: 'grid', gridTemplateColumns: stack('1fr 1.3fr'), gap: isMobile ? 44 : 80 }}>
           <div className="reveal reveal-l">
             <div className="site-kicker" style={{ marginBottom: 20 }}>( Get in touch )</div>
-            <h2 className="site-h2" style={{ fontSize: isMobile ? 30 : 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 40px' }}>Start the conversation</h2>
+            <h2 className="site-h2" style={{ fontSize: isMobile ? 30 : 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 22px' }}>Every Story Begins With a Conversation</h2>
+            <p style={{ fontSize: 16.5, lineHeight: 1.7, color: 'var(--smuted)', margin: '0 0 40px', maxWidth: 460 }}>Behind every extraordinary production is a powerful idea waiting to be brought to life. Share your vision with us, and let&apos;s create something that inspires, connects, and endures.</p>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {[
                 ['Phone', phone],
@@ -930,7 +964,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
             </div>
             {sent && <div style={{ marginTop: 20, ...mono, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', color: sent.startsWith('Message') ? '#1B8A5A' : '#C24A6E' }}>{sent}</div>}
             <button type="submit" disabled={sending} className="clip-btn-lg" style={{ marginTop: 36, padding: '17px 34px', background: 'var(--sink)', border: 'none', color: 'var(--sbg)', ...mono, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', opacity: sending ? 0.6 : 1 }}>
-              {sending ? 'Sending…' : 'Send Message →'}
+              {sending ? 'Sending…' : 'Begin Your Creative Journey →'}
             </button>
           </form>
         </div>

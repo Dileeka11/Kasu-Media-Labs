@@ -50,56 +50,6 @@ button { cursor: pointer; }
   50% { transform: translateY(-10px); }
 }
 
-/* ---------- Smooth custom cursor ---------- */
-/* Only takes over once the JS confirms a fine pointer + activity, so touch
-   users and no-JS visitors keep the native cursor. Both layers are fixed,
-   compositor-promoted, and never intercept pointer events. */
-.cursor-ring,
-.cursor-dot {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 100000;
-  pointer-events: none;
-  border-radius: 50%;
-  opacity: 0;
-  will-change: transform;
-  transition: opacity 0.3s ease;
-}
-.cursor-dot {
-  width: 7px;
-  height: 7px;
-  background: linear-gradient(135deg, #E86FA6, #8354C9 55%, #2B39B8);
-  box-shadow: 0 0 10px rgba(131, 84, 201, 0.7);
-  /* Grow/shrink handled here so it stays smooth alongside the JS transform. */
-  transition: opacity 0.3s ease, width 0.25s ease, height 0.25s ease;
-}
-.cursor-ring {
-  width: 38px;
-  height: 38px;
-  border: 1.5px solid rgba(131, 84, 201, 0.55);
-  transition: opacity 0.3s ease, width 0.28s cubic-bezier(0.16, 0.8, 0.24, 1),
-    height 0.28s cubic-bezier(0.16, 0.8, 0.24, 1),
-    background 0.28s ease, border-color 0.28s ease;
-}
-/* Fade both layers in only while the pointer is on the page. */
-body.cursor-active .cursor-ring,
-body.cursor-active .cursor-dot { opacity: 1; }
-/* Hide the OS cursor once ours is driving. */
-body.has-custom-cursor,
-body.has-custom-cursor * { cursor: none !important; }
-
-/* Over interactive elements: the ring blooms into a soft disc and the dot tucks away. */
-.cursor-ring--hover {
-  width: 60px;
-  height: 60px;
-  background: rgba(131, 84, 201, 0.12);
-  border-color: rgba(232, 111, 166, 0.7);
-}
-.cursor-dot--hover { width: 0; height: 0; }
-/* Click feedback — the ring dips inward. */
-.cursor-ring--down { width: 30px; height: 30px; border-color: #E86FA6; }
-
 /* ---------- Public site (KML Production v2) ---------- */
 .site-root {
   --sbg: #F7F6FB;

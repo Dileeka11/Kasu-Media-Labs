@@ -98,13 +98,13 @@ export default function Layout() {
             : { position: 'sticky', top: 0, height: '100vh' }),
         }}
       >
-        <a
-          href="/"
-          title="Back to live site"
-          style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '0 0 26px 22px', textDecoration: 'none', color: 'inherit' }}
+        <div
+          onClick={() => void navigate('/admin')}
+          title="Dashboard"
+          style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '0 0 26px 22px', color: 'inherit', cursor: 'pointer' }}
         >
           <KLogoImg gradient size={42} src={logoUrl} />
-        </a>
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, paddingLeft: 8 }}>
           {nav.map((n) => {
             const isActive = n.to === '/admin' ? pathname === '/admin' : pathname.startsWith(n.to);

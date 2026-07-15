@@ -5,7 +5,6 @@ import Link from 'next/link';
 import type { Project, SiteData } from '../lib/types';
 import { KLogoImg } from './ui';
 import { WorkCard, VideoModal, type ActiveVideo } from './work';
-import Cursor from './Cursor';
 import { applyFont, fontStack, preloadSavedFont } from '../lib/font';
 import { useIsMobile, useIsTablet } from '../lib/useMediaQuery';
 
@@ -72,9 +71,6 @@ export default function WorkClient({ initialData }: { initialData: SiteData | nu
 
   return (
     <div className={`site-root${theme === 'dark' ? ' dark' : ''}`} style={rootStyle}>
-      {/* SMOOTH CUSTOM CURSOR (desktop / fine-pointer only) */}
-      {!isMobile && <Cursor />}
-
       {/* Header — logo home link + back-to-home + theme toggle */}
       <nav className="site-nav scrolled">
         <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
@@ -98,7 +94,7 @@ export default function WorkClient({ initialData }: { initialData: SiteData | nu
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ marginBottom: isMobile ? 8 : 20 }}>
             <div className="site-kicker" style={{ marginBottom: 14 }}>( Selected work )</div>
-            <h2 className="site-h2" style={{ margin: 0 }}>Our work speaks for itself</h2>
+            <h2 className="site-h2" style={{ margin: 0 }}>Creative Journeys That Define Us</h2>
             <p style={{ fontSize: 17, lineHeight: 1.7, color: 'var(--smuted)', margin: '20px 0 0', maxWidth: 560 }}>
               Every project we&apos;ve shot, edited, and delivered — commercials, corporate films, documentaries, and social content.
             </p>
