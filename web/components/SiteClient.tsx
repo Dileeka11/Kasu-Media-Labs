@@ -184,10 +184,9 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
     return () => { alive = false; };
   }, []);
 
-  // Mount the hero background video only on desktop, and only once the browser
-  // is idle — so it never blocks or slows the initial page load.
+  // Mount the hero background video once the browser is idle — on mobile too
+  // (muted + playsInline autoplays fine) — so it never blocks the first load.
   useEffect(() => {
-    if (isMobile) return;
     const w = window as typeof window & {
       requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
       cancelIdleCallback?: (id: number) => void;
@@ -199,7 +198,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
     }
     id = window.setTimeout(() => setShowHeroVideo(true), 1200);
     return () => clearTimeout(id);
-  }, [isMobile]);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -533,14 +532,14 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
             {heroHead && <>{heroHead} </>}
             <span className="grad-text-anim" style={{ background: 'linear-gradient(100deg,#F49AC1,#B48BEB 35%,#7C89FF 65%,#F49AC1)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', filter: hasHeroVideo ? 'drop-shadow(0 2px 18px rgba(6,5,12,.55))' : undefined }}>{heroTail}</span>
           </h1>
-          <p className="hero-in hero-in-3" style={{ fontSize: 19, lineHeight: 1.6, color: '#CFCDE0', maxWidth: 520, margin: '30px 0 0', textShadow: hasHeroVideo ? '0 1px 16px rgba(6,5,12,.7)' : undefined }}>
+          <p className="hero-in hero-in-3" style={{ fontSize: 'clamp(15px,4.4vw,19px)', lineHeight: 1.6, color: '#CFCDE0', maxWidth: 520, margin: isMobile ? '22px 0 0' : '30px 0 0', textShadow: hasHeroVideo ? '0 1px 16px rgba(6,5,12,.7)' : undefined }}>
             {heroSub}
           </p>
-          <div className="hero-in hero-in-4" style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center', marginTop: 40 }}>
+          <div className="hero-in hero-in-4" style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center', marginTop: isMobile ? 30 : 40 }}>
             <button
               onClick={showreelSrc ? openShowreel : scrollToContact}
               className="clip-btn-lg"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '16px 26px 16px 18px', background: grad, border: 'none', color: '#fff', ...mono, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer' }}
+              style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: 12, padding: '16px 26px 16px 18px', background: grad, border: 'none', color: '#fff', ...mono, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', cursor: 'pointer', flex: isMobile ? '1 1 100%' : '0 0 auto' }}
             >
               <span style={{ display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,.22)' }}>
                 <span style={{ borderLeft: '9px solid #fff', borderTop: '6px solid transparent', borderBottom: '6px solid transparent', marginLeft: 2 }} />
@@ -549,7 +548,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
             </button>
             <button
               onClick={scrollToContact}
-              style={{ padding: '16px 26px', background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.32)', color: '#fff', ...mono, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', backdropFilter: 'blur(8px)' }}
+              style={{ padding: '16px 26px', background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.32)', color: '#fff', ...mono, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', backdropFilter: 'blur(8px)', flex: isMobile ? '1 1 100%' : '0 0 auto' }}
             >
               Start Your Project
             </button>
