@@ -36,11 +36,31 @@ export default function SettingsHero() {
             <input className="k-input" value={s.hero_headline ?? ''} onChange={(e) => setLocal({ hero_headline: e.target.value })} />
           </div>
           <div>
+            <label className="k-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Headline size</span>
+              <span style={{ color: 'var(--sfaint)' }}>{s.hero_headline_size ?? 100}%</span>
+            </label>
+            <input
+              type="range"
+              min={50}
+              max={150}
+              step={5}
+              value={s.hero_headline_size ?? 100}
+              onChange={(e) => setLocal({ hero_headline_size: Number(e.target.value) })}
+              style={{ width: '100%', accentColor: 'var(--accent, #8354C9)' }}
+            />
+            <div style={{ marginTop: 10, padding: '18px 16px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg)', overflow: 'hidden' }}>
+              <span style={{ fontFamily: fontStack(s.font), fontWeight: 700, textTransform: 'uppercase', letterSpacing: -1, lineHeight: 0.95, fontSize: 40 * ((s.hero_headline_size ?? 100) / 100) }}>
+                {s.hero_headline || 'Your headline'}
+              </span>
+            </div>
+          </div>
+          <div>
             <label className="k-label">Sub-headline</label>
             <textarea className="k-input" value={s.hero_subheadline ?? ''} onChange={(e) => setLocal({ hero_subheadline: e.target.value })} style={{ height: 76, resize: 'vertical' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <button className="k-btn-grad" onClick={() => void saveWith({ hero_kicker: s.hero_kicker, hero_headline: s.hero_headline, hero_subheadline: s.hero_subheadline })} disabled={busy}>
+            <button className="k-btn-grad" onClick={() => void saveWith({ hero_kicker: s.hero_kicker, hero_headline: s.hero_headline, hero_headline_size: s.hero_headline_size, hero_subheadline: s.hero_subheadline })} disabled={busy}>
               {busy ? 'Saving…' : 'Save hero'}
             </button>
             {savedTag}

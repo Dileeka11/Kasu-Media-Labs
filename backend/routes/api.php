@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/public/site', [PublicController::class, 'site']);
 Route::post('/public/inquiries', [PublicController::class, 'inquire']);
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('admin.log');
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'admin.log'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 

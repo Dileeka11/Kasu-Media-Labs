@@ -40,6 +40,7 @@ class SettingController extends Controller
             // Hero copy
             'hero_kicker' => ['sometimes', 'nullable', 'string', 'max:255'],
             'hero_headline' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'hero_headline_size' => ['sometimes', 'required', 'integer', 'min:50', 'max:150'],
             'hero_subheadline' => ['sometimes', 'nullable', 'string', 'max:500'],
 
             // Contact

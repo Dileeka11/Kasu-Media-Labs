@@ -273,6 +273,9 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
   const tickerItems = data?.ticker_items?.length ? data.ticker_items : defaultTickerItems;
   const heroKicker = data?.hero_kicker || 'Full-Service Video Production House';
   const heroHeadline = data?.hero_headline || 'We Create Videos That Move People';
+  // Admin-controlled headline size (percentage; 100 = default). Scales the whole
+  // responsive clamp so the proportions stay intact across breakpoints.
+  const headlineScale = (data?.hero_headline_size ?? 100) / 100;
   const heroSub = data?.hero_subheadline || 'From concept to final delivery — cinematic stories for brands, businesses, and creators.';
   const heroWords = heroHeadline.trim().split(/\s+/);
   const heroHead = heroWords.slice(0, -2).join(' ');
@@ -525,10 +528,9 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
 
         <div style={{ position: 'relative', zIndex: 3, width: '100%', maxWidth: 1360, margin: '0 auto', padding: isMobile ? '80px 20px 0' : '96px 40px 0', color: '#F7F6FB' }}>
           <div className="hero-in hero-in-1" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 15px', border: '1px solid rgba(255,255,255,.24)', borderRadius: 100, ...mono, fontSize: 11.5, letterSpacing: 2, textTransform: 'uppercase', color: '#EDEBF6', marginBottom: 30 }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#E86FA6', boxShadow: '0 0 12px #E86FA6', animation: 'kmlbob 2.4s ease-in-out infinite' }} />
             {heroKicker}
           </div>
-          <h1 className="hero-in hero-in-2" style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: isMobile ? -1.5 : -3, lineHeight: 0.92, margin: 0, fontSize: 'clamp(38px,8.4vw,116px)', maxWidth: '14ch', textShadow: hasHeroVideo ? '0 2px 30px rgba(6,5,12,.6)' : undefined }}>
+          <h1 className="hero-in hero-in-2" style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: isMobile ? -1.5 : -3, lineHeight: 0.92, margin: 0, fontSize: `clamp(${38 * headlineScale}px,${8.4 * headlineScale}vw,${116 * headlineScale}px)`, maxWidth: '14ch', textShadow: hasHeroVideo ? '0 2px 30px rgba(6,5,12,.6)' : undefined }}>
             {heroHead && <>{heroHead} </>}
             <span className="grad-text-anim" style={{ background: 'linear-gradient(100deg,#F49AC1,#B48BEB 35%,#7C89FF 65%,#F49AC1)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', filter: hasHeroVideo ? 'drop-shadow(0 2px 18px rgba(6,5,12,.55))' : undefined }}>{heroTail}</span>
           </h1>
@@ -885,6 +887,16 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
         </div>
       </section>
 
+      {/* PRECISION */}
+      <section style={{ borderTop: '1px solid var(--sline-16)', background: 'var(--sbg)' }}>
+        <div className="reveal" style={{ maxWidth: 820, margin: '0 auto', padding: secPad, textAlign: 'center' }}>
+          <h2 className="site-h2" style={{ fontSize: isMobile ? 30 : 48, letterSpacing: -1.6, lineHeight: 1.05, margin: '0 0 22px' }}>Precision Behind Every Frame.</h2>
+          <p style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1.7, color: 'var(--smuted)', margin: 0 }}>
+            From cinema-grade equipment to thoughtful lighting and meticulous execution, we create visuals crafted to match the excellence of the brands we represent.
+          </p>
+        </div>
+      </section>
+
       {/* CTA */}
       <section style={{ borderTop: '1px solid var(--sline-16)', padding: isMobile ? '48px 20px' : '80px 40px' }}>
         <div className="reveal reveal-scale cta-grad" style={{ maxWidth: 1360, margin: '0 auto', background: 'linear-gradient(115deg,#E86FA6,#8354C9 45%,#2B39B8)', clipPath: 'polygon(0 6%, 100% 0, 100% 94%, 0 100%)', padding: isMobile ? '64px 24px' : '110px 60px', textAlign: 'center', color: '#fff' }}>
@@ -954,7 +966,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
               </div>
               <div style={{ gridColumn: 'span 2' }}>
                 <label className="k-label" style={{ marginBottom: 10, color: 'var(--sfaint)' }}>Budget Range</label>
-                <input className="site-input" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} placeholder="e.g. $5k–10k" />
+                <input className="site-input" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} placeholder="" />
               </div>
               <div style={{ gridColumn: 'span 2' }}>
                 <label className="k-label" style={{ marginBottom: 10, color: 'var(--sfaint)' }}>Message</label>

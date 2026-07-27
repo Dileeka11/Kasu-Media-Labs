@@ -8,7 +8,7 @@ class Setting extends Model
 {
     protected $fillable = [
         'studio_name', 'contact_email', 'font', 'ticker_font', 'email_on_inquiries', 'auto_publish', 'show_drafts',
-        'logo', 'hero_video', 'showreel_url', 'hero_kicker', 'hero_headline', 'hero_subheadline',
+        'logo', 'hero_video', 'showreel_url', 'hero_kicker', 'hero_headline', 'hero_headline_size', 'hero_subheadline',
         'phone', 'address', 'socials', 'stats', 'clients', 'testimonials', 'ticker_items',
         'about_image', 'about_kicker', 'about_heading', 'about_body1', 'about_body2', 'about_features',
         'gear_image', 'gear_kicker', 'gear_heading', 'gear_body', 'gear_items',
@@ -19,6 +19,7 @@ class Setting extends Model
     protected function casts(): array
     {
         return [
+            'hero_headline_size' => 'integer',
             'email_on_inquiries' => 'boolean',
             'auto_publish' => 'boolean',
             'show_drafts' => 'boolean',

@@ -88,6 +88,7 @@ export interface Settings {
   showreel_url: string | null;
   hero_kicker: string | null;
   hero_headline: string | null;
+  hero_headline_size: number;
   hero_subheadline: string | null;
   phone: string | null;
   address: string | null;

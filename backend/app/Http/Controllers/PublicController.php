@@ -28,6 +28,7 @@ class PublicController extends Controller
             'showreel_url' => $settings->showreel_url,
             'hero_kicker' => $settings->hero_kicker,
             'hero_headline' => $settings->hero_headline,
+            'hero_headline_size' => $settings->hero_headline_size,
             'hero_subheadline' => $settings->hero_subheadline,
             'phone' => $settings->phone,
             'address' => $settings->address,

@@ -242,15 +242,7 @@ button { cursor: pointer; }
   0% { box-shadow: 0 0 0 0 rgba(232, 111, 166, 0.55); }
   100% { box-shadow: 0 0 0 10px rgba(232, 111, 166, 0); }
 }
-.foot-rec { display: inline-flex; align-items: center; gap: 9px; }
-.foot-rec::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #E86FA6;
-  animation: kmlpulse 1.8s ease-out infinite;
-}
+.foot-rec { display: inline-flex; align-items: center; }
 
 .foot-link {
   position: relative;
@@ -506,7 +498,7 @@ button { cursor: pointer; }
     transition: none !important;
   }
   .kml-blob, .grad-text-anim, .logo-slider-track, .proc-bar-fill,
-  .foot-sweep, .foot-rec::before, .foot-parallax > use { animation: none !important; }
+  .foot-sweep, .foot-parallax > use { animation: none !important; }
   .proc-bar-fill { width: 72%; }
 }
 
