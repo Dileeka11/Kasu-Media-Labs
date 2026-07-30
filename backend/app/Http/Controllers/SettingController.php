@@ -51,7 +51,8 @@ class SettingController extends Controller
             'socials' => ['sometimes', 'nullable', 'array'],
             'socials.instagram' => ['nullable', 'string', 'max:255'],
             'socials.youtube' => ['nullable', 'string', 'max:255'],
-            'socials.vimeo' => ['nullable', 'string', 'max:255'],
+            'socials.facebook' => ['nullable', 'string', 'max:255'],
+            'socials.tiktok' => ['nullable', 'string', 'max:255'],
             'socials.linkedin' => ['nullable', 'string', 'max:255'],
 
             // Stats

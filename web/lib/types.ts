@@ -28,7 +28,8 @@ export interface Project {
 export interface Socials {
   instagram?: string;
   youtube?: string;
-  vimeo?: string;
+  facebook?: string;
+  tiktok?: string;
   linkedin?: string;
 }
 

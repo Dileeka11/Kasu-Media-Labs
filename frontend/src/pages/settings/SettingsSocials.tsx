@@ -9,10 +9,11 @@ interface SettingsContext {
   setLocal: (patch: Partial<SettingsData>) => void;
 }
 
-const socialMeta: { key: 'instagram' | 'youtube' | 'vimeo' | 'linkedin'; label: string; ph: string }[] = [
+const socialMeta: { key: 'instagram' | 'youtube' | 'facebook' | 'tiktok' | 'linkedin'; label: string; ph: string }[] = [
   { key: 'instagram', label: 'Instagram', ph: 'https://instagram.com/…' },
   { key: 'youtube', label: 'YouTube', ph: 'https://youtube.com/@…' },
-  { key: 'vimeo', label: 'Vimeo', ph: 'https://vimeo.com/…' },
+  { key: 'facebook', label: 'Facebook', ph: 'https://facebook.com/…' },
+  { key: 'tiktok', label: 'TikTok', ph: 'https://tiktok.com/@…' },
   { key: 'linkedin', label: 'LinkedIn', ph: 'https://linkedin.com/company/…' },
 ];
 
