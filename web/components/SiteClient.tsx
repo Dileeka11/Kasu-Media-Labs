@@ -380,7 +380,12 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
 
       {/* TOP BAR */}
       <nav className={`site-nav${scrolled ? ' scrolled' : ''}`}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          role="link"
+          aria-label="Back to top"
+          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+        >
           <KLogoImg gradient size={46} src={data?.logo_url} />
         </div>
         <div style={{ display: isMobile ? 'none' : 'flex', gap: 30, ...mono, fontSize: 12.5, letterSpacing: 1, textTransform: 'uppercase' }}>
@@ -434,7 +439,14 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <KLogoImg gradient size={44} src={data?.logo_url} />
+            <div
+              onClick={() => { setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              role="link"
+              aria-label="Back to top"
+              style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+            >
+              <KLogoImg gradient size={44} src={data?.logo_url} />
+            </div>
             <button
               onClick={() => setMenuOpen(false)}
               aria-label="Close menu"
@@ -530,7 +542,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
           <div className="hero-in hero-in-1" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 15px', border: '1px solid rgba(255,255,255,.24)', borderRadius: 100, ...mono, fontSize: 11.5, letterSpacing: 2, textTransform: 'uppercase', color: '#EDEBF6', marginBottom: 30 }}>
             {heroKicker}
           </div>
-          <h1 className="hero-in hero-in-2" style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: isMobile ? -1.5 : -3, lineHeight: 0.92, margin: 0, fontSize: `clamp(${38 * headlineScale}px,${8.4 * headlineScale}vw,${116 * headlineScale}px)`, maxWidth: '14ch', textShadow: hasHeroVideo ? '0 2px 30px rgba(6,5,12,.6)' : undefined }}>
+          <h1 className="hero-in hero-in-2" style={{ fontFamily: 'var(--ui-font)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: isMobile ? -1.5 : -3, lineHeight: 1.05, margin: 0, fontSize: `clamp(${38 * headlineScale}px,${8.4 * headlineScale}vw,${116 * headlineScale}px)`, maxWidth: '14ch', textShadow: hasHeroVideo ? '0 2px 30px rgba(6,5,12,.6)' : undefined }}>
             {heroHead && <>{heroHead} </>}
             <span className="grad-text-anim" style={{ background: 'linear-gradient(100deg,#F49AC1,#B48BEB 35%,#7C89FF 65%,#F49AC1)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', filter: hasHeroVideo ? 'drop-shadow(0 2px 18px rgba(6,5,12,.55))' : undefined }}>{heroTail}</span>
           </h1>
@@ -618,7 +630,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 18, marginBottom: 20 }}>
             <div style={{ maxWidth: 620 }}>
-              <div className="site-kicker" style={{ marginBottom: 14 }}>( Selected work )</div>
+              <div className="site-kicker" style={{ marginBottom: 14 }}>Selected work</div>
               <h2 className="site-h2">Creative Journeys That Define Us</h2>
               <p style={{ margin: '18px 0 0', opacity: 0.75, fontSize: 16, lineHeight: 1.65 }}>At KML, we believe every great brand deserves an extraordinary story. Through strategic creativity, cinematic execution, and meticulous craftsmanship, we transform ideas into impactful experiences that connect with audiences and stand the test of time.</p>
               <p style={{ margin: '14px 0 0', opacity: 0.75, fontSize: 16, lineHeight: 1.65 }}>Whether it’s a commercial, corporate film, digital content, documentary, exclusive creative content; we bring your story to life with cinematic precision, driven purpose.</p>
@@ -672,7 +684,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
       <section id="about" style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: isMobile ? 68 : 80 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad, display: 'grid', gridTemplateColumns: stack('.9fr 1.4fr'), gap: isMobile ? 40 : 70 }}>
           <div className="reveal reveal-l">
-            <div className="site-kicker" style={{ marginBottom: 26 }}>( {aboutKicker} )</div>
+            <div className="site-kicker" style={{ marginBottom: 26 }}>{aboutKicker}</div>
             {data?.about_image_url ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
@@ -720,7 +732,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
         <div className="kml-blob" style={{ bottom: '-10%', left: '-4%', width: 420, height: 420, background: 'rgba(43,57,184,.42)', animationDelay: '-7s' }} />
         <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 16, marginBottom: 60 }}>
-            <div className="site-kicker" style={{ color: '#C9A8FF' }}>( Why we exist )</div>
+            <div className="site-kicker" style={{ color: '#C9A8FF' }}>Why we exist</div>
             <h2 className="site-h2">Vision, mission &amp; objectives</h2>
           </div>
 
@@ -757,7 +769,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
       <section style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: isMobile ? 68 : 80 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 16, marginBottom: 60 }}>
-            <div className="site-kicker">( What we stand for )</div>
+            <div className="site-kicker">What we stand for</div>
             <h2 className="site-h2">Our commitment</h2>
           </div>
           <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: stack('repeat(3,1fr)') }}>
@@ -778,7 +790,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
       <section id="services" style={{ borderTop: '1px solid var(--sline-16)', background: 'var(--ssurface)', scrollMarginTop: isMobile ? 68 : 80 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 60, flexWrap: 'wrap', gap: 16 }}>
-            <div className="site-kicker">( What we do )</div>
+            <div className="site-kicker">What we do</div>
             <h2 className="site-h2">End-to-end production</h2>
           </div>
           <div className="reveal-stagger" style={{ display: 'grid', gridTemplateColumns: stack('repeat(3,1fr)') }}>
@@ -808,7 +820,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
         <div style={{ position: 'relative', maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ marginBottom: 40 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 16 }}>
-              <div className="site-kicker" style={{ color: '#E86FA6' }}>( How we work )</div>
+              <div className="site-kicker" style={{ color: '#E86FA6' }}>How we work</div>
               <h2 className="site-h2">The Making of Extraordinary Experiences</h2>
             </div>
             <p style={{ fontSize: 17.5, lineHeight: 1.7, color: '#B4B1C9', margin: '26px 0 0', maxWidth: 760, marginLeft: 'auto' }}>
@@ -835,7 +847,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
       {/* TESTIMONIAL */}
       <section style={{ borderTop: '1px solid var(--sline-16)' }}>
         <div className="reveal" style={{ maxWidth: 1100, margin: '0 auto', padding: isMobile ? '72px 20px' : '110px 40px', textAlign: 'center' }}>
-          <div className="site-kicker" style={{ marginBottom: 34 }}>( What clients say )</div>
+          <div className="site-kicker" style={{ marginBottom: 34 }}>What clients say</div>
           <p style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 'clamp(24px,4vw,40px)', lineHeight: 1.25, letterSpacing: -1, margin: '0 0 36px' }}>
             &ldquo;{lead.q}&rdquo;
           </p>
@@ -857,7 +869,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
       <section style={{ borderTop: '1px solid var(--sline-16)', background: 'var(--ssurface)' }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad, display: 'grid', gridTemplateColumns: stack('1.2fr 1fr'), gap: isMobile ? 40 : 70, alignItems: 'center' }}>
           <div className="reveal reveal-l">
-            <div className="site-kicker" style={{ marginBottom: 20 }}>( {gearKicker} )</div>
+            <div className="site-kicker" style={{ marginBottom: 20 }}>{gearKicker}</div>
             <h2 className="site-h2" style={{ fontSize: isMobile ? 30 : 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 22px' }}>{gearHeading}</h2>
             <p style={{ fontSize: 17, lineHeight: 1.7, color: 'var(--smuted)', margin: '0 0 36px', maxWidth: 520 }}>
               {gearBody}
@@ -917,7 +929,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
       <section id="contact" ref={contactRef} style={{ borderTop: '1px solid var(--sline-16)', scrollMarginTop: isMobile ? 68 : 80 }}>
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad, display: 'grid', gridTemplateColumns: stack('1fr 1.3fr'), gap: isMobile ? 44 : 80 }}>
           <div className="reveal reveal-l">
-            <div className="site-kicker" style={{ marginBottom: 20 }}>( Get in touch )</div>
+            <div className="site-kicker" style={{ marginBottom: 20 }}>Get in touch</div>
             <h2 className="site-h2" style={{ fontSize: isMobile ? 30 : 48, letterSpacing: -1.6, lineHeight: 1, margin: '0 0 22px' }}>Every Story Begins With a Conversation</h2>
             <p style={{ fontSize: 16.5, lineHeight: 1.7, color: 'var(--smuted)', margin: '0 0 40px', maxWidth: 460 }}>Behind every extraordinary production is a powerful idea waiting to be brought to life. Share your vision with us, and let&apos;s create something that inspires, connects, and endures.</p>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
