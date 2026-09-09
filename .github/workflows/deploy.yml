@@ -47,8 +47,11 @@ jobs:
       # ---- Build the admin SPA (frontend/ -> frontend/dist, base /admin/) ----
       - name: Build admin
         working-directory: frontend
+        # npm install (not ci): the lockfile omits Linux-only optional deps
+        # (@emnapi/*) that this native toolchain pulls in on the runner, which
+        # makes the strict `npm ci` sync check fail.
         run: |
-          npm ci
+          npm install --no-audit --no-fund
           npm run build
 
       # ---- Stage the docroot layout ----------------------------------------
