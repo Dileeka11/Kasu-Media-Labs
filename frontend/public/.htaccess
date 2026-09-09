@@ -1,0 +1,11 @@
+# Admin SPA fallback. Vite copies public/* into dist/, so this ships to
+# /admin/.htaccess on deploy and survives future uploads. Without it, direct
+# hits like /admin/login return 500 (no file -> ErrorDocument failed).
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /admin/
+  # Serve real files/dirs as-is; route everything else to the SPA entry point.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /admin/index.html [L]
+</IfModule>

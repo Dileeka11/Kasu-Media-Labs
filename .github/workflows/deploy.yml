@@ -1,0 +1,74 @@
+name: Deploy to kmlproductions.com (FTP)
+
+# Builds the public site (Next static export) + admin SPA (Vite) and uploads
+# them to the cPanel docroot over FTP. The Laravel API (api/, laravel/, storage/)
+# is NOT touched here — it is deployed separately and the FTP action only manages
+# the files it uploads, so the backend folders are left intact.
+#
+# Required repo secrets: FTP_SERVER, FTP_USERNAME, FTP_PASSWORD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ftp-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ---- Build the public site (web/ -> web/out) --------------------------
+      # Browser calls the API with a RELATIVE base ("/api") so it uses whatever
+      # protocol/host the page is served on — this avoids the SSL cert mismatch
+      # on the bare domain while AutoSSL is pending. API_URL (build-time SSR
+      # fetch) is over http and is allowed to fail; getSiteData() returns null
+      # and the browser refetches live via /api on load.
+      - name: Build site
+        working-directory: web
+        env:
+          NEXT_PUBLIC_API_URL: /api
+          NEXT_PUBLIC_SITE_URL: https://kmlproductions.com
+          API_URL: http://kmlproductions.com/api
+        run: |
+          npm ci
+          npm run build
+
+      # ---- Build the admin SPA (frontend/ -> frontend/dist, base /admin/) ----
+      - name: Build admin
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      # ---- Stage the docroot layout ----------------------------------------
+      - name: Assemble deploy folder
+        run: |
+          rm -rf deploy
+          mkdir -p deploy/admin
+          cp -r web/out/. deploy/
+          cp -r frontend/dist/. deploy/admin/
+
+      # ---- Upload over FTP --------------------------------------------------
+      # The FTP account's home dir IS the domain docroot, so server-dir is "./".
+      # No dangerous-clean-slate: the action only deletes files it previously
+      # uploaded, so api/ laravel/ storage/ hero.mp4 etc. are never removed.
+      - name: FTP deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          local-dir: ./deploy/
+          server-dir: ./
