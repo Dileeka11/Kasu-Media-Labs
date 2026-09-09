@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/public/site', [PublicController::class, 'site']);
 Route::post('/public/inquiries', [PublicController::class, 'inquire']);
+Route::post('/public/track-view', [PublicController::class, 'trackView']);
+
 
 Route::post('/login', [AuthController::class, 'login'])->middleware('admin.log');
 

@@ -4,14 +4,45 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\Category;
+use App\Models\DailyView;
 use App\Models\Inquiry;
 use App\Models\Project;
 use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PublicController extends Controller
 {
+    /**
+     * Record one page-view for today.
+     * Called by the public website on every real visitor page-load.
+     * Bot / crawler user-agents are silently ignored.
+     */
+    public function trackView(Request $request): JsonResponse
+    {
+        $ua = $request->userAgent() ?? '';
+
+        // Skip obvious bots so the chart stays clean
+        $botPattern = '/bot|crawl|slurp|spider|mediapartners|headless|prerender/i';
+        if (preg_match($botPattern, $ua)) {
+            return response()->json(['ok' => true]);
+        }
+
+        $today = now()->toDateString();
+
+        // Upsert: insert row for today if it doesn't exist, then increment
+        DB::table('daily_views')->upsert(
+            [['date' => $today, 'views' => 1, 'created_at' => now(), 'updated_at' => now()]],
+            ['date'],
+            []
+        );
+        DB::table('daily_views')
+            ->where('date', $today)
+            ->increment('views');
+
+        return response()->json(['ok' => true]);
+    }
     public function site(): JsonResponse
     {
         $settings = Setting::instance();
