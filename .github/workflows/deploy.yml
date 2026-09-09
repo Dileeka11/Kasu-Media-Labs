@@ -47,9 +47,14 @@ jobs:
       # ---- Build the admin SPA (frontend/ -> frontend/dist, base /admin/) ----
       - name: Build admin
         working-directory: frontend
+        # VITE_API_URL set here (not via .env.production, which is gitignored and
+        # absent in CI) so the SPA calls the relative /api base instead of the
+        # localhost fallback in src/api.ts.
         # npm install (not ci): the lockfile omits Linux-only optional deps
         # (@emnapi/*) that this native toolchain pulls in on the runner, which
         # makes the strict `npm ci` sync check fail.
+        env:
+          VITE_API_URL: /api
         run: |
           npm install --no-audit --no-fund
           npm run build
