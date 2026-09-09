@@ -9,19 +9,19 @@ import { useEffect } from 'react';
  */
 export default function ViewTracker() {
   useEffect(() => {
-    // Only fire once per page lifecycle; ignore if fetch isn't available
+    // Use absolute URL — static export doesn't handle relative /api paths
     const apiBase =
-      process.env.NEXT_PUBLIC_API_URL ?? 'https://kmlproductions.com/api';
+      process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL.startsWith('http')
+        ? process.env.NEXT_PUBLIC_API_URL
+        : 'https://kmlproductions.com/api';
 
     fetch(`${apiBase}/public/track-view`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      // Fire-and-forget — we don't care about the response
     }).catch(() => {
       // Silent fail — tracking should never break the UI
     });
   }, []);
 
-  // Renders nothing — purely a side-effect component
   return null;
 }
