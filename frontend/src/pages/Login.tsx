@@ -193,22 +193,6 @@ export default function Login() {
             {busy ? 'Signing in…' : 'Sign in →'}
           </button>
 
-          <div
-            style={{
-              marginTop: 22,
-              padding: '12px 14px',
-              background: 'var(--bg)',
-              border: '1px dashed rgba(23,21,58,.2)',
-              borderRadius: 4,
-              fontFamily: 'var(--ui-font)',
-              fontSize: 11.5,
-              color: 'var(--ink-3)',
-              lineHeight: 1.6,
-            }}
-          >
-            DEMO — email: <span style={{ color: 'var(--ink)' }}>admin@kml</span> · password: <span style={{ color: 'var(--ink)' }}>kml</span>
-          </div>
-
           <Link
             to="/"
             className="k-mono"
