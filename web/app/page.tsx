@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const description =
     data?.hero_subheadline ||
     `${studio} — ${kicker}. Cinematic commercials, corporate films, product videos, and documentaries, from concept to final delivery.`;
-  const title = `${studio} — ${kicker}`;
+  const title = 'KML Productions - Creative Production';
   const image = data?.logo_url || `${SITE_URL}/favicon.svg`;
 
   return {
