@@ -27,7 +27,7 @@ class DashboardController extends Controller
             'total_projects' => Project::count(),
             'projects_this_month' => Project::whereYear('created_at', now()->year)
                 ->whereMonth('created_at', now()->month)->count(),
-            'total_views' => (int) Project::sum('views'),
+            'total_views' => (int) DailyView::sum('views'),
             'views_delta' => $delta,
             'new_inquiries' => Inquiry::whereDate('created_at', '>=', now()->subDays(30))->count(),
             'unread_inquiries' => Inquiry::where('unread', true)->count(),
