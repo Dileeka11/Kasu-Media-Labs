@@ -94,7 +94,7 @@ export default function WorkClient({ initialData }: { initialData: SiteData | nu
         <div style={{ maxWidth: 1360, margin: '0 auto', padding: secPad }}>
           <div className="reveal" style={{ marginBottom: isMobile ? 8 : 20 }}>
             <div className="site-kicker" style={{ marginBottom: 14 }}>( Selected work )</div>
-            <h2 className="site-h2" style={{ margin: 0 }}>Creative Journeys That Define Us</h2>
+            <h1 className="site-h2" style={{ margin: 0 }}>Creative Journeys That Define Us</h1>
             <p style={{ fontSize: 17, lineHeight: 1.7, color: 'var(--smuted)', margin: '20px 0 0', maxWidth: 560 }}>
               Every project we&apos;ve shot, edited, and delivered — commercials, corporate films, documentaries, and social content.
             </p>

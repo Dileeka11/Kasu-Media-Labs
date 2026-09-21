@@ -1,8 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import ViewTracker from '../components/ViewTracker';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+import { BRAND, CITY, COUNTRY, DEFAULT_DESCRIPTION, KEYWORDS, LOCALE, SITE_URL } from '../lib/seo';
 
 // Only the default font is loaded eagerly here. Whichever font the studio has
 // chosen in the admin panel is fetched on demand at runtime (lib/font.ts), so a
@@ -13,13 +12,55 @@ const FONTS_HREF =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'KML Production — Video Production House',
-    template: '%s — KML Production',
+    default: `${BRAND} — Video Production Company in ${CITY}, ${COUNTRY}`,
+    template: `%s — ${BRAND}`,
   },
-  description:
-    'Full-service video production house. Cinematic commercials, corporate films, product videos, and documentaries — from concept to final delivery.',
-  icons: { icon: '/favicon.svg' },
-  robots: { index: true, follow: true },
+  description: DEFAULT_DESCRIPTION,
+  keywords: KEYWORDS,
+  applicationName: BRAND,
+  authors: [{ name: BRAND, url: SITE_URL }],
+  creator: BRAND,
+  publisher: BRAND,
+  category: 'Video Production',
+  // Stop mobile browsers auto-linking phone/address in body copy as generic
+  // links (keeps the real, intentional contact links authoritative).
+  formatDetection: { telephone: false, address: false, email: false },
+  icons: {
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    apple: '/favicon.svg',
+  },
+  manifest: '/manifest.webmanifest',
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    locale: LOCALE,
+    url: SITE_URL,
+    siteName: BRAND,
+    title: `${BRAND} — Video Production Company in ${CITY}, ${COUNTRY}`,
+    description: DEFAULT_DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${BRAND} — Video Production Company in ${CITY}, ${COUNTRY}`,
+    description: DEFAULT_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-video-preview': -1,
+      'max-snippet': -1,
+    },
+  },
+  appleWebApp: { capable: true, title: BRAND, statusBarStyle: 'black-translucent' },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0C0A16',
+  colorScheme: 'light dark',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

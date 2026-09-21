@@ -33,7 +33,9 @@
       "Bash(grep -o 'INSERT INTO `[a-z_]*`' 'D:/My Projects/kml-projects-only.sql')",
       "Bash(awk '{print $5, $NF}')",
       "Bash(node -e \"console.log\\('node',process.version\\)\")",
-      "Read(//c/Program Files/Google/Chrome/Application/**)"
+      "Read(//c/Program Files/Google/Chrome/Application/**)",
+      "Bash(identify public/hero.png)",
+      "Bash(file public/hero.png)"
     ]
   }
 }
