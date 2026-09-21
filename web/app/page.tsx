@@ -1,17 +1,18 @@
 import type { Metadata } from 'next';
 import { getSiteData } from '../lib/api';
 import SiteClient from '../components/SiteClient';
-import { BRAND, CITY, COUNTRY, DEFAULT_DESCRIPTION, KEYWORDS, SITE_URL } from '../lib/seo';
+import { BRAND, CITY, COUNTRY, DEFAULT_DESCRIPTION, HOME_TITLE, KEYWORDS, SITE_URL } from '../lib/seo';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const data = await getSiteData();
-  const description = data?.hero_subheadline || DEFAULT_DESCRIPTION;
-  const title = `${BRAND} — Video Production Company in ${CITY}, ${COUNTRY}`;
+  // A fixed, concise description keeps the meta description within the search
+  // snippet limit — the admin hero copy is long marketing prose, unsuitable
+  // as a meta description (it was being truncated by search engines).
+  const description = DEFAULT_DESCRIPTION;
 
   return {
-    // Absolute title so the strong, keyword-rich homepage title isn't wrapped by
-    // the "%s — KML Productions" template.
-    title: { absolute: title },
+    // Absolute title so the keyword-rich homepage title isn't wrapped by the
+    // "%s — KML Productions" template.
+    title: { absolute: HOME_TITLE },
     description,
     keywords: KEYWORDS,
     alternates: { canonical: '/' },
@@ -19,12 +20,12 @@ export async function generateMetadata(): Promise<Metadata> {
       type: 'website',
       url: SITE_URL,
       siteName: BRAND,
-      title,
+      title: HOME_TITLE,
       description,
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: HOME_TITLE,
       description,
     },
   };

@@ -7,13 +7,14 @@ export async function generateMetadata(): Promise<Metadata> {
   const data = await getSiteData();
   const studio = data?.studio_name || BRAND;
   const count = data?.projects?.length ?? 0;
-  const title = `Our Work — Video Production Portfolio${count ? ` (${count} Projects)` : ''}`;
+  // Kept short (absolute) so the "%s — KML Productions" template doesn't push it
+  // past the ~580px title limit.
+  const title = `${BRAND} — Video Production Portfolio`;
   const description =
     `Explore ${studio}'s video production portfolio in ${CITY}, ${COUNTRY}` +
-    `${count ? ` — ${count} projects` : ''}: commercials, corporate films, product videos, ` +
-    'brand films, documentaries and social content.';
+    `${count ? ` — ${count} projects` : ''}: commercials, corporate films, brand films & documentaries.`;
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords: [
       'video production portfolio Sri Lanka',

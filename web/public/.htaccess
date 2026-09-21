@@ -1,0 +1,53 @@
+# Root .htaccess for the public site (docroot). Shipped via web/public/ -> out/
+# -> deploy docroot. Handles the canonical-URL redirects, charset and caching
+# that a plain static export can't set on its own. The /admin and /api folders
+# have their own .htaccess and are unaffected (these are global redirects only).
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # 1) www -> non-www, forcing https in the same hop (canonical host is the
+  #    bare domain, https://kmlproductions.com). Single 301, no redirect chain.
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+
+  # 2) http -> https for the non-www host.
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Emit the charset in the HTTP Content-Type header (not just the <meta> tag).
+AddDefaultCharset UTF-8
+
+# Gzip/compress text assets to cut transfer size and improve load time.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml \
+    application/javascript application/json application/xml \
+    image/svg+xml application/manifest+json
+</IfModule>
+
+# Cache static assets aggressively (the Next build hashes filenames, so long
+# cache is safe); keep HTML fresh so admin edits show quickly.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css                "access plus 1 year"
+  ExpiresByType application/javascript  "access plus 1 year"
+  ExpiresByType image/svg+xml           "access plus 1 year"
+  ExpiresByType image/png               "access plus 6 months"
+  ExpiresByType image/jpeg              "access plus 6 months"
+  ExpiresByType image/webp              "access plus 6 months"
+  ExpiresByType image/x-icon            "access plus 1 year"
+  ExpiresByType font/woff2              "access plus 1 year"
+  ExpiresByType text/html               "access plus 0 seconds"
+</IfModule>
+
+# Sensible default security headers (cheap wins, no behaviour change).
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  # Long-cache the hashed Next assets explicitly.
+  <FilesMatch "\.(css|js|woff2|svg|png|jpg|jpeg|webp|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>

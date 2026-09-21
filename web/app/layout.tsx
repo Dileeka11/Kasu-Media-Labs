@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import ViewTracker from '../components/ViewTracker';
-import { BRAND, CITY, COUNTRY, DEFAULT_DESCRIPTION, KEYWORDS, LOCALE, SITE_URL } from '../lib/seo';
+import { BRAND, DEFAULT_DESCRIPTION, HOME_TITLE, KEYWORDS, LOCALE, SITE_URL } from '../lib/seo';
 
 // Only the default font is loaded eagerly here. Whichever font the studio has
 // chosen in the admin panel is fetched on demand at runtime (lib/font.ts), so a
@@ -12,7 +12,7 @@ const FONTS_HREF =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${BRAND} — Video Production Company in ${CITY}, ${COUNTRY}`,
+    default: HOME_TITLE,
     template: `%s — ${BRAND}`,
   },
   description: DEFAULT_DESCRIPTION,
@@ -36,12 +36,12 @@ export const metadata: Metadata = {
     locale: LOCALE,
     url: SITE_URL,
     siteName: BRAND,
-    title: `${BRAND} — Video Production Company in ${CITY}, ${COUNTRY}`,
+    title: HOME_TITLE,
     description: DEFAULT_DESCRIPTION,
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${BRAND} — Video Production Company in ${CITY}, ${COUNTRY}`,
+    title: HOME_TITLE,
     description: DEFAULT_DESCRIPTION,
   },
   robots: {

@@ -13,11 +13,15 @@ export const CITY = 'Colombo';
 export const COUNTRY = 'Sri Lanka';
 export const LOCALE = 'en_LK';
 
-// Default share/OG description used when the admin panel has no custom copy.
+// Meta/OG description — kept to ~140 chars so it isn't truncated in search
+// results (Seobility flags anything over ~1000px / ~155 chars).
 export const DEFAULT_DESCRIPTION =
-  `${BRAND} is a full-service video production company in ${CITY}, ${COUNTRY} — ` +
-  'cinematic commercials, corporate films, product videos, brand films, ' +
-  'documentaries and social content, from concept to final delivery.';
+  `${BRAND} is a video production company in ${CITY}, ${COUNTRY} — ` +
+  'cinematic commercials, corporate films, brand films and documentaries.';
+
+// Homepage <title>. Kept under ~580px (~55 chars) so search engines don't
+// truncate it. "Sri Lanka" lives in the description + structured data instead.
+export const HOME_TITLE = `${BRAND} — Video Production Company in ${CITY}`;
 
 // Site-wide keyword set. Google largely ignores the meta keywords tag, but Bing
 // and other engines still read it, and this doubles as the documented keyword

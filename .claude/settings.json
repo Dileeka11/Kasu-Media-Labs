@@ -35,7 +35,13 @@
       "Bash(node -e \"console.log\\('node',process.version\\)\")",
       "Read(//c/Program Files/Google/Chrome/Application/**)",
       "Bash(identify public/hero.png)",
-      "Bash(file public/hero.png)"
+      "Bash(file public/hero.png)",
+      "Bash(ls -la .github/workflows/)",
+      "Bash(find . -name \".htaccess\" -not -path \"./node_modules/*\" -not -path \"*/vendor/*\")",
+      "Bash(ls -la *.ps1 *.sh scripts/)",
+      "Bash(ls web/*.ps1 web/*.sh)",
+      "Bash(ls -la .htaccess)",
+      "Bash(head -3 .htaccess)"
     ]
   }
 }

@@ -859,7 +859,9 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
           </p>
           <div style={{ ...mono, fontSize: 12.5, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--smuted)' }}>{lead.a}{lead.r ? ` — ${lead.r}` : ''}</div>
           <div className="reveal-stagger" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'center' : 'flex-start', justifyContent: 'center', gap: 40, marginTop: 60, paddingTop: 44, borderTop: '1px solid var(--sline-12)' }}>
-            {quoteList.map((t, i) => (
+            {/* Skip the first quote here — it's already shown as the large lead
+                quote above, so repeating it would duplicate on-page text (bad SEO). */}
+            {quoteList.slice(1).map((t, i) => (
               <div key={i} className="quote-card" style={{ maxWidth: 280, textAlign: 'left' }}>
                 <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--smuted)', margin: '0 0 12px' }}>&ldquo;{t.q}&rdquo;</p>
                 <div style={{ ...mono, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--sfaint)' }}>
@@ -905,12 +907,14 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
         </div>
       </section>
 
-      {/* PRECISION */}
+      {/* LOCATION / SEO STATEMENT — distinct copy (not a repeat of the Gear
+          section) that puts the city + country into visible on-page content,
+          which strengthens local search relevance. */}
       <section style={{ borderTop: '1px solid var(--sline-16)', background: 'var(--sbg)' }}>
         <div className="reveal" style={{ maxWidth: 820, margin: '0 auto', padding: secPad, textAlign: 'center' }}>
-          <h2 className="site-h2" style={{ fontSize: isMobile ? 30 : 48, letterSpacing: -1.6, lineHeight: 1.05, margin: '0 0 22px' }}>Precision Behind Every Frame.</h2>
+          <h2 className="site-h2" style={{ fontSize: isMobile ? 30 : 48, letterSpacing: -1.6, lineHeight: 1.05, margin: '0 0 22px' }}>Video Production, Crafted in Colombo</h2>
           <p style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1.7, color: 'var(--smuted)', margin: 0 }}>
-            From cinema-grade equipment to thoughtful lighting and meticulous execution, we create visuals crafted to match the excellence of the brands we represent.
+            {data?.studio_name || 'KML Productions'} is a full-service video production company based in Colombo, Sri Lanka — crafting cinematic commercials, corporate films, brand stories, product videos and documentaries for clients across the island and around the world.
           </p>
         </div>
       </section>
@@ -1052,7 +1056,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
               <div>
                 <KLogoImg gradient size={40} src={data?.logo_url} />
                 <p style={{ margin: '18px 0 22px', maxWidth: 300, fontSize: 14, lineHeight: 1.7, color: '#B4B1C9' }}>
-                  {data?.studio_name ?? 'KML Production'} — cinematic video production, from first concept to final cut.
+                  {data?.studio_name ?? 'KML Productions'} — cinematic video production in Colombo, Sri Lanka, from first concept to final cut.
                 </p>
                 <div style={{ display: 'flex', gap: 10 }}>
                   {socials.map(([so, key]) => {
