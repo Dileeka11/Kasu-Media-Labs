@@ -41,7 +41,11 @@
       "Bash(ls -la *.ps1 *.sh scripts/)",
       "Bash(ls web/*.ps1 web/*.sh)",
       "Bash(ls -la .htaccess)",
-      "Bash(head -3 .htaccess)"
+      "Bash(head -3 .htaccess)",
+      "Bash(nslookup kmlproductions.com)",
+      "Bash(nslookup www.kmlproductions.com)",
+      "Bash(openssl s_client -connect kmlproductions.com:443 -servername kmlproductions.com)",
+      "Bash(openssl x509 *)"
     ]
   }
 }

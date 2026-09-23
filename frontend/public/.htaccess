@@ -3,6 +3,16 @@
 # hits like /admin/login return 500 (no file -> ErrorDocument failed).
 <IfModule mod_rewrite.c>
   RewriteEngine On
+
+  # Canonical URL + HTTPS, same as the site root. Without these, hitting the
+  # admin over http (or via www) stays on http -> browser shows "Not secure".
+  # www -> non-www, forcing https in one hop.
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+  # http -> https for the non-www host.
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
   RewriteBase /admin/
   # Serve real files/dirs as-is; route everything else to the SPA entry point.
   RewriteCond %{REQUEST_FILENAME} !-f
