@@ -6,6 +6,7 @@ import type { Category, ClientItem, Project, Socials, SiteData } from '../lib/ty
 import { KLogoImg } from './ui';
 import { WorkCard, VideoModal, Placeholder, type ActiveVideo } from './work';
 import { applyFont, fontStack, preloadSavedFont } from '../lib/font';
+import { forceHttps } from '../lib/api';
 import { useIsMobile, useIsTablet } from '../lib/useMediaQuery';
 
 const API = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api') as string;
@@ -184,7 +185,7 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
     let alive = true;
     fetch(`${API}/public/site`, { headers: { Accept: 'application/json' } })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (alive && d) setData(d as SiteData); })
+      .then((d) => { if (alive && d) setData(forceHttps(d as SiteData)); })
       .catch(() => {});
     return () => { alive = false; };
   }, []);

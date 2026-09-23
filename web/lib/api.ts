@@ -4,6 +4,21 @@ import type { SiteData } from './types';
 const API_URL = process.env.API_URL ?? 'http://localhost:8000/api';
 
 /**
+ * The API can hand back absolute `http://kmlproductions.com/storage/...` URLs
+ * for uploaded media (Laravel's asset() built from a non-https APP_URL). On the
+ * https site those http images trip Chrome's mixed-content "Not secure" warning,
+ * so rewrite our own domain to https here. External http links are left alone.
+ */
+export function forceHttps<T>(data: T): T {
+  if (data == null) return data;
+  const json = JSON.stringify(data).replace(
+    /http:\/\/(www\.)?kmlproductions\.com/g,
+    'https://kmlproductions.com',
+  );
+  return JSON.parse(json) as T;
+}
+
+/**
  * Fetch the full public site payload on the server. Revalidated periodically so
  * content edited in the admin panel appears without a redeploy, while every
  * request still gets fully server-rendered HTML (good for SEO).
@@ -18,7 +33,7 @@ export async function getSiteData(): Promise<SiteData | null> {
       next: { revalidate: 60 },
     });
     if (!res.ok) return null;
-    return (await res.json()) as SiteData;
+    return forceHttps((await res.json()) as SiteData);
   } catch {
     return null;
   }
