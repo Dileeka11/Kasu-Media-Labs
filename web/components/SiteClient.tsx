@@ -28,11 +28,6 @@ const processSteps = [
 ];
 
 // Fallbacks used only until the studio fills these in from the admin panel.
-const defaultTestimonials = [
-  { q: 'The team transformed our idea into an incredible commercial. The production quality was outstanding.', a: 'Sarah Lin', r: 'Brand Manager, Aether' },
-  { q: 'Their storytelling and cinematic quality elevated our brand far beyond what we imagined.', a: 'Marcus Reed', r: 'CMO, Vertex' },
-  { q: 'From concept to delivery, flawless execution. We book them for every campaign now.', a: 'Dana Okoye', r: 'Head of Marketing, Lumen' },
-];
 const defaultStats = [
   { value: '250+', label: 'Projects delivered' },
   { value: '7 yrs', label: 'In production' },
@@ -290,8 +285,6 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
     ? data.clients.filter((c) => c.name || c.logo)
     : defaultClients.map((name) => ({ name }));
   const statList = data?.stats?.length ? data.stats : defaultStats;
-  const quoteList = data?.testimonials?.length ? data.testimonials.map((t) => ({ q: t.quote, a: t.author, r: t.role })) : defaultTestimonials;
-  const lead = quoteList[0];
   const hasHeroVideo = !!data?.hero_video_url;
   // About section — admin-managed, falling back to the original copy.
   const aboutKicker = data?.about_kicker || 'About the studio';
@@ -845,29 +838,6 @@ export default function SiteClient({ initialData }: { initialData: SiteData | nu
                   {s.n} — {s.t}
                 </h4>
                 <p style={{ fontSize: 14.5, lineHeight: 1.6, color: '#B4B1C9', margin: 0 }}>{s.d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIAL */}
-      <section style={{ borderTop: '1px solid var(--sline-16)' }}>
-        <div className="reveal" style={{ maxWidth: 1100, margin: '0 auto', padding: isMobile ? '72px 20px' : '110px 40px', textAlign: 'center' }}>
-          <div className="site-kicker" style={{ marginBottom: 34 }}>What clients say</div>
-          <p style={{ fontFamily: 'var(--ui-font)', fontWeight: 600, fontSize: 'clamp(24px,4vw,40px)', lineHeight: 1.25, letterSpacing: -1, margin: '0 0 36px' }}>
-            &ldquo;{lead.q}&rdquo;
-          </p>
-          <div style={{ ...mono, fontSize: 12.5, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--smuted)' }}>{lead.a}{lead.r ? ` — ${lead.r}` : ''}</div>
-          <div className="reveal-stagger" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'center' : 'flex-start', justifyContent: 'center', gap: 40, marginTop: 60, paddingTop: 44, borderTop: '1px solid var(--sline-12)' }}>
-            {/* Skip the first quote here — it's already shown as the large lead
-                quote above, so repeating it would duplicate on-page text (bad SEO). */}
-            {quoteList.slice(1).map((t, i) => (
-              <div key={i} className="quote-card" style={{ maxWidth: 280, textAlign: 'left' }}>
-                <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--smuted)', margin: '0 0 12px' }}>&ldquo;{t.q}&rdquo;</p>
-                <div style={{ ...mono, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--sfaint)' }}>
-                  {t.a}{t.r ? ` — ${t.r}` : ''}
-                </div>
               </div>
             ))}
           </div>
